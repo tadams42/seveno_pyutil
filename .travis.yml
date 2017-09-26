@@ -1,0 +1,36 @@
+language: python
+sudo: false
+cache: pip
+os: linux
+dist: trusty
+env:
+  global:
+    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+    - SEGFAULT_SIGNALS=all
+matrix:
+  include:
+    - python: '2.7'
+      env:
+        - TOXENV=2.7
+    - python: '3.5'
+      env:
+        - TOXENV=check
+    - python: '3.5'
+      env:
+        - TOXENV=docs
+    - python: '3.5'
+      env:
+        - TOXENV=3.5
+    - python: '3.6'
+      env:
+        - TOXENV=3.6
+    - python: pypy2.7-5.8.0
+      env:
+        - TOXENV=pypy
+    - python: pypy3.5-5.8.0
+      env:
+        - TOXENV=pypy3
+install:
+  - pip install tox-travis
+script:
+  - tox
