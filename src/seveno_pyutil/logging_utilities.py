@@ -79,13 +79,13 @@ class DynamicContextFormatter(logging.Formatter):
     Example:
         >>> import logging
         >>> import sys
-        >>> from lib.logging_utilities import DynamicContextFormatter
+        >>> from seveno_pyutil.logging_utilities import DynamicContextFormatter
         >>>
         >>> logger = logging.getLogger('console')
         >>> handler = logging.StreamHandler(stream=sys.stdout)
         >>> handler.setFormatter(
         ...     DynamicContextFormatter(
-        ...         fmt=DynamicContextFormatter.PLACEHOLDER + '%(message)s'
+        ...         fmt=DynamicContextFormatter.PLACEHOLDER + ' %(message)s'
         ...     )
         ... )
         >>> handler.setLevel('DEBUG')
@@ -95,11 +95,12 @@ class DynamicContextFormatter(logging.Formatter):
         >>> DynamicContextFormatter.CONTEXT['foo'] = 42
         >>> DynamicContextFormatter.CONTEXT['bar'] = 'baz'
         >>> logger.info("Message with context")
-        foo: 42, bar: baz, Message with context
+         foo: 42, bar: baz, Message with context
         >>>
         >>> DynamicContextFormatter.CONTEXT['foo'] = None
+        >>> DynamicContextFormatter.CONTEXT['bar'] = None
         >>> logger.info("Message without context")
-        Message without context
+         Message without context
     """
 
     #: Class level logging context
