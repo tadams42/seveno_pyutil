@@ -1,6 +1,7 @@
 import json
 import logging
 import socket
+import threading
 import time
 import traceback
 from collections import OrderedDict
@@ -72,38 +73,45 @@ COLORED_FILELOG_PREFIX = '%(isotime)s %(hostname)s {application_name}[%(process)
 class DynamicContextFormatter(logging.Formatter):
     """
     Formatter that prepends logging message with logging context data, but only
-    if with values in context dict that are not blank.
+    with values in context dict that are not blank.
 
-    Logging context is stored in class variable.
+    Logging context is stored in thread local storage.
 
     Example:
         >>> import logging
         >>> import sys
-        >>> from lib.logging_utilities import DynamicContextFormatter
+        >>> from seveno_pyutil.logging_utilities import DynamicContextFormatter
         >>>
         >>> logger = logging.getLogger('console')
         >>> handler = logging.StreamHandler(stream=sys.stdout)
         >>> handler.setFormatter(
         ...     DynamicContextFormatter(
-        ...         fmt=DynamicContextFormatter.PLACEHOLDER + '%(message)s'
+        ...         fmt=DynamicContextFormatter.PLACEHOLDER + ' %(message)s'
         ...     )
         ... )
         >>> handler.setLevel('DEBUG')
         >>> logger.setLevel('DEBUG')
         >>> logger.addHandler(handler)
         >>>
-        >>> DynamicContextFormatter.CONTEXT['foo'] = 42
-        >>> DynamicContextFormatter.CONTEXT['bar'] = 'baz'
+        >>> DynamicContextFormatter.context()['foo'] = 42
+        >>> DynamicContextFormatter.context()['bar'] = 'baz'
         >>> logger.info("Message with context")
-        foo: 42, bar: baz, Message with context
+         foo: 42, bar: baz, Message with context
         >>>
-        >>> DynamicContextFormatter.CONTEXT['foo'] = None
+        >>> DynamicContextFormatter.context()['foo'] = None
+        >>> DynamicContextFormatter.context()['bar'] = None
         >>> logger.info("Message without context")
-        Message without context
+         Message without context
     """
 
-    #: Class level logging context
-    CONTEXT = OrderedDict()
+    _LOGGING_CONTEXT = threading.local()
+
+    @classmethod
+    def context(cls):
+        """Thread local logging context storage."""
+        if not hasattr(cls._LOGGING_CONTEXT, 'data'):
+            cls._LOGGING_CONTEXT.data = OrderedDict()
+        return cls._LOGGING_CONTEXT.data
 
     #: Logging format string placeholder
     PLACEHOLDER = '%(dynamic_context_data)s'
@@ -117,11 +125,11 @@ class DynamicContextFormatter(logging.Formatter):
         """Generates data for ``record.dynamic_context_data`` attribute."""
         if reduce(or_, [
             not string_utilities.is_blank(value)
-            for value in self.CONTEXT.values()
-        ], False) and self.CONTEXT:
+            for value in self.context().values()
+        ], False) and self.context():
             return self.PREFIX + ', '.join([
                 '{}: {}'.format(key, value)
-                for key, value in self.CONTEXT.items()
+                for key, value in self.context().items()
                 if not string_utilities.is_blank(value)
             ]) + self.SUFFIX
         return ''
