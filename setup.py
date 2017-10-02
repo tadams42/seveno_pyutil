@@ -25,7 +25,7 @@ def read(*names, **kwargs):
 
 setup(
     name="seveno_pyutil",
-    version='0.1.0',
+    version='0.1.1',
     license='MIT',
     description="Various unsorted Python utilities",
     long_description='%s\n%s' % (
