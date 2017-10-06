@@ -222,3 +222,100 @@ def log_traceback_single_log(logger_callable):
 def log_traceback_multiple_logs(logger_callable):
     for line in traceback.format_exc().split('\n'):
         logger_callable(line)
+
+
+class SQLFormatter(logging.Formatter):
+    """
+    Formatter for Django's SQL loggers. Reformats and colorizes queries.
+    """
+    def __init__(self, colorize_queries=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # TODO: not for now
+        self.reformat_queries = False
+        self.colorize_queries = colorize_queries
+
+    def format(self, record):
+        if self.colorize_queries:
+            # Check if Pygments is available for coloring
+            try:
+                import pygments
+                from pygments.lexers import SqlLexer
+                # from pygments.formatters import TerminalTrueColorFormatter
+                from pygments.formatters import Terminal256Formatter
+            except ImportError:
+                pygments = None
+        else:
+            pygments = None
+
+        if self.reformat_queries:
+            # Check if sqlparse is available for indentation
+            try:
+                import sqlparse
+            except ImportError:
+                sqlparse = None
+        else:
+            sqlparse = None
+
+        # Remove leading and trailing whitespaces
+        sql = record.sql.strip()
+
+        if sqlparse:
+            # Indent the SQL query
+            sql = sqlparse.format(sql, reindent=True)
+
+        if pygments:
+            # Highlight the SQL query
+            sql = pygments.highlight(
+                sql,
+                SqlLexer(),
+                # TerminalTrueColorFormatter(style='monokai')
+                Terminal256Formatter(style='monokai')
+            )
+
+        # Set the record's statement to the formatted query
+
+        if not hasattr(record, 'duration'):
+            # DDL statements don't have `duration` attribute set by Django
+            # loggers. Not much we can do about that
+            record.duration = 0
+
+        record.statement = sql.strip()
+        return super().format(record)
+
+
+class ColoredSQLFormatter(SQLFormatter):
+    """
+    Formatter for Django's SQL logger that colorizes SQL in log. Don't use with
+    ``syslog``, it is ugly and wrong. And remember to use ``less -R`` to enjoy.
+
+    Example logging dict config::
+
+        {
+            'colored_sql': {
+                '()': 'ColoredSQLFormatter',
+                'format': '(%(duration).3f) %(statement)s'
+            }
+        }
+
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('colorize_queries', None)
+        super().__init__(colorize_queries=True, *args, **kwargs)
+
+
+class ColorlessSQLFormatter(SQLFormatter):
+    """
+    Formatter for Django's SQL logger that produces colorless SQL in log.
+    Suitable for use with ``syslog``. Example logging dict config::
+
+        {
+            'syslog_sql': {
+                '()': 'ColorlessSQLFormatter',
+                'format': RFC5424_PREFIX + '(%(duration).3f) %(statement)s'
+            }
+        }
+
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('colorize_queries', None)
+        super().__init__(colorize_queries=False, *args, **kwargs)

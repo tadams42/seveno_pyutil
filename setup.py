@@ -65,7 +65,9 @@ setup(
         'pytz',
         'tzlocal',
         'colorlog',
-        'marshmallow'
+        'marshmallow',
+        'pygments',
+        'sqlparse'
     ],
     # List additional groups of dependencies HERE (e.g. development
     # dependencies). You can install these using the following syntax,
