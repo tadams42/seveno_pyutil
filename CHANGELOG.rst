@@ -11,7 +11,6 @@ Changelog
 
 * DynamicContextFormatter now keeps context in thread local.
 
-
 0.1.0 (2017-09-26)
 ------------------
 
