@@ -25,7 +25,7 @@ def read(*names, **kwargs):
 
 setup(
     name="seveno_pyutil",
-    version='0.1.1',
+    version='0.2.0',
     license='MIT',
     description="Various unsorted Python utilities",
     long_description='%s\n%s' % (
@@ -65,7 +65,9 @@ setup(
         'pytz',
         'tzlocal',
         'colorlog',
-        'marshmallow'
+        'marshmallow',
+        'pygments',
+        'sqlparse'
     ],
     # List additional groups of dependencies HERE (e.g. development
     # dependencies). You can install these using the following syntax,
