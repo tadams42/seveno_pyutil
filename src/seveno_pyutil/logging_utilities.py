@@ -1,6 +1,7 @@
 import json
 import logging
 import socket
+import sys
 import threading
 import time
 import traceback
@@ -112,6 +113,12 @@ class DynamicContextFormatter(logging.Formatter):
         if not hasattr(cls._LOGGING_CONTEXT, 'data'):
             cls._LOGGING_CONTEXT.data = OrderedDict()
         return cls._LOGGING_CONTEXT.data
+
+    @classmethod
+    def clear_context(cls):
+        if hasattr(cls._LOGGING_CONTEXT, 'data'):
+            for key in cls._LOGGING_CONTEXT.data.keys():
+                cls._LOGGING_CONTEXT.data[key] = None
 
     #: Logging format string placeholder
     PLACEHOLDER = '%(dynamic_context_data)s'
@@ -319,3 +326,20 @@ class ColorlessSQLFormatter(SQLFormatter):
     def __init__(self, *args, **kwargs):
         kwargs.pop('colorize_queries', None)
         super().__init__(colorize_queries=False, *args, **kwargs)
+
+
+def log_to_console_for(logger_name):
+    """
+    Sometimes, usually during development, we want to quickly see output of
+    some particular package logger. This method will configure such logger
+    to spit stuff out to console.
+    """
+
+    logger = logging.getLogger(logger_name)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+
+    logger.setLevel(logging.DEBUG)
+
+    logger.addHandler(handler)
