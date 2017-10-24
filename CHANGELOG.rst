@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.2.1 (2017-10-24)
+------------------
+
+* Added logging_utilities.log_to_console_for
+
 0.2.0 (2017-10-06)
 ------------------
 
