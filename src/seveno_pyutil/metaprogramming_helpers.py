@@ -23,3 +23,12 @@ def leaf_subclasses(klass):
     Returns all leaf subclasses of given ``klass``
     """
     return LeafSubclassRetriever(klass).value()
+
+
+def all_subclasses(klass):
+    subclasses = set(klass.__subclasses__())
+
+    for subklass in subclasses:
+        subclasses = subclasses.union(all_subclasses(subklass))
+
+    return subclasses
