@@ -69,9 +69,27 @@ def silent_remove(file_path):
     file doesn't exist.
     """
 
+    if is_blank(file_path):
+        return None
+
     try:
         os.remove(file_path)
 
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
+
+
+def switch_extension(file_path, new_extension):
+    if is_blank(new_extension):
+        return file_path
+
+    if not new_extension.startswith('.'):
+        new_extension = '.' + new_extension
+
+    return os.path.join(
+        os.path.dirname(file_path),
+        os.path.splitext(
+            os.path.basename(file_path)
+        )[0] + new_extension
+    )
