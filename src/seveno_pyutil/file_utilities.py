@@ -61,3 +61,17 @@ def move_and_create_dest(src_path, dst_dir):
     silent_create_dirs(dst_dir)
     shutil.move(src_path, dst_dir)
     return os.path.join(dst_dir, os.path.basename(src_path))
+
+
+def silent_remove(file_path):
+    """
+    Same as `os.remove` with aditional condition it doesn't rise exceptio if
+    file doesn't exist.
+    """
+
+    try:
+        os.remove(file_path)
+
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
