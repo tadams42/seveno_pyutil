@@ -71,23 +71,38 @@ class Validateable(object):
 
 class Representable(object):
     """
-    Mixin provides generic __repr__ implementation for value object (
-    for example: models).
+    Mixin provides generic __repr__ implementation for value objects (for
+    example: models).
 
     - prints only public attributes
     - date values are printed as ISO8601
     """
 
-    def _repr_attribute(self, name, value):
+    _ONLY_REPR_ATTRIBUTES = None
+    _SKIP_REPR_ATTRIBUTES = None
+
+    def _repr_it(self, name, value):
         return "{}={}".format(
             name, repr(getattr(value, "isoformat", lambda: value)())
         )
 
+    @property
+    def _attrs_to_repr(self):
+        return sorted([
+            attr for attr in (
+                set(self._ONLY_REPR_ATTRIBUTES or [])
+                or (
+                    set(vars(self).keys()) -
+                    set(self._SKIP_REPR_ATTRIBUTES or [])
+                )
+            )
+            if not attr.startswith('_')
+        ])
+
     def __repr__(self):
         return "{}({})".format(
             self.__class__.__name__, ", ".join([
-                self._repr_attribute(name, value)
-                for name, value in vars(self).items()
-                if not name.startswith('_')
+                self._repr_it(attr, getattr(self, attr))
+                for attr in self._attrs_to_repr
             ])
         )
