@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.2.6 (2017-11-23)
+------------------
+
+* model_utilities.Representable is now customizeable using private class attrs.
+
 0.2.5 (2017-11-16)
 ------------------
 
