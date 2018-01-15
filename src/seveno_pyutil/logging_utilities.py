@@ -11,8 +11,13 @@ from functools import reduce
 from logging import NullHandler
 from operator import or_
 
+import pygments
 import pytz
+import sqlparse
 import tzlocal
+# from pygments.formatters import TerminalTrueColorFormatter
+from pygments.formatters import Terminal256Formatter
+from pygments.lexers import SqlLexer
 
 from . import string_utilities
 
@@ -146,7 +151,28 @@ class DynamicContextFormatter(logging.Formatter):
         return super(DynamicContextFormatter, self).format(record)
 
 
-def log_http_request(request):
+def _colored_json(data):
+    try:
+        if isinstance(data, dict):
+            json_str = json.dumps(data)
+        else:
+            json_str = None
+    except Exception:
+        json_str = None
+
+    if not json_str:
+        return data
+
+    return pygments.highlight(
+        json_str,
+        pygments.lexers.get_lexer_for_mimetype('application/json'),
+        Terminal256Formatter(style='monokai')
+    )
+
+    return data
+
+
+def log_http_request(request, colorized=False):
     """
     Log some stuff from HTTP request.
 
@@ -161,27 +187,43 @@ def log_http_request(request):
     )
 
     logger.info("Started HTTP request %s: %s", request.method, destination)
+
+    headers = ((k.strip(), v.strip()) for k, v in request.headers)
+
     logger.debug(
-        "HTTP request headers: %s",
-        "{}".format(request.headers).replace("\r\n", " ")
+        "HTTP request headers: %s", (
+            _colored_json(dict(headers))
+            if colorized else json.dumps(dict(headers))
+        ).strip()
     )
 
     if (
         getattr(request, "is_json", None) or
         request.headers.get('Content-Type', None) == 'application/json'
     ):
-        logger.info("HTTP request payload: %s", request.json)
+        logger.info(
+            "HTTP request payload: %s",
+            _colored_json(request.json).strip() if colorized
+            else str(request.json).strip()
+        )
 
 
-def log_http_response(for_request, response):
+def log_http_response(
+    for_request, response, colorized=False, response_metrics=None
+):
     """
     Log some stuff from HTTP request.
 
     Known to work with Flask and Django request objects.
     """
+
+    headers = ((k.strip(), v.strip()) for k, v in response.headers)
+
     logger.debug(
-        "HTTP response headers: %s",
-        "{}".format(response.headers).replace("\r\n", " ")
+        "HTTP response headers: %s", (
+            _colored_json(dict(headers))
+            if colorized else json.dumps(dict(headers))
+        ).strip()
     )
 
     if (
@@ -190,21 +232,40 @@ def log_http_response(for_request, response):
     ):
         payload = getattr(response, 'json', ''
                          ) or response.data.decode('UTF-8')
+
         if callable(payload):
             payload = payload()
 
         if isinstance(payload, str):
             payload = json.loads(payload)
 
-        logger.info("HTTP response payload: %s", payload)
+        logger.info(
+            "HTTP response payload: %s", (
+                _colored_json(dict(payload))
+                if colorized else json.dumps(dict(payload))
+            ).strip()
+        )
 
-    logger.info(
-        "Finished HTTP request: %s %s %s", for_request.method,
-        getattr(for_request, "path", None)
-        or getattr(for_request, "url", None),
-        getattr(response, 'status', None)
-        or getattr(response, 'status_code', None)
-    )
+    if response_metrics:
+        logger.info(
+            "Completed %s %s %s %s", for_request.method,
+            getattr(for_request, "path", None)
+            or getattr(for_request, "url", None),
+            getattr(response, 'status', None)
+            or getattr(response, 'status_code', None),
+            (
+                _colored_json(dict(response_metrics))
+                if colorized else json.dumps(dict(response_metrics))
+            ).strip()
+        )
+    else:
+        logger.info(
+            "Completed %s %s %s", for_request.method,
+            getattr(for_request, "path", None)
+            or getattr(for_request, "url", None),
+            getattr(response, 'status', None)
+            or getattr(response, 'status_code', None)
+        )
 
     return response
 
@@ -233,60 +294,74 @@ def log_traceback_multiple_logs(logger_callable):
 
 class SQLFormatter(logging.Formatter):
     """
-    Formatter for Django's SQL loggers. Reformats and colorizes queries.
+    Formatter for Django's and SQLAlchemy SQL loggers. Reformats and colorizes
+    queries.
+
+    To use it with Django, add it to ``django.db.backends`` and
+    ``django.db.backends.schema`` loggers.
+
+    To use it with SQLAlchemy, add it to ``sqlalchemy.engine`` logger.
+
+    For convenience and for use in ``logging.config.dictConfig`` there are also
+    `.ColoredSQLFormatter` and `.ColorlessSQLFormatter`
+
+    Formatter supports following loginng placeholders:
+
+    +-------------------+----------------------------------------------+
+    | placeholder       | description                                  |
+    +-------------------+----------------------------------------------+
+    | %(statement)s     | SQL statement being executed (SQLAlchemy)    |
+    |                   | or that was executed (Django)                |
+    +-------------------+----------------------------------------------+
+    | %(duration)s      | Duration of SQL execution in [ms]            |
+    +-------------------+----------------------------------------------+
     """
     def __init__(self, colorize_queries=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # TODO: not for now
-        self.reformat_queries = False
         self.colorize_queries = colorize_queries
 
     def format(self, record):
-        if self.colorize_queries:
-            # Check if Pygments is available for coloring
-            try:
-                import pygments
-                from pygments.lexers import SqlLexer
-                # from pygments.formatters import TerminalTrueColorFormatter
-                from pygments.formatters import Terminal256Formatter
-            except ImportError:
-                pygments = None
+        if not hasattr(record, 'sql'):
+            # SQLAlchemy logger puts SQL statements into ``record.msg``.
+            sql = record.getMessage().strip()
         else:
-            pygments = None
+            # Django ORM logger puts SQL statements into ``record.sql``.
+            sql = record.sql.strip()
 
-        if self.reformat_queries:
-            # Check if sqlparse is available for indentation
+        # SQLAlchemy logger creates two types of log records: one with SQL
+        # statements which is followed by antoher that has query parameters
+        if sql.startswith('{'):
             try:
-                import sqlparse
-            except ImportError:
-                sqlparse = None
+                params_json = json.loads(sql.replace("'", '"'))
+            except Exception:
+                params_json = None
+
+            if self.colorize_queries and params_json:
+                sql = 'Query parameters: ' + _colored_json(params_json)
+            else:
+                sql = 'Query parameters: ' + sql
         else:
-            sqlparse = None
-
-        # Remove leading and trailing whitespaces
-        sql = record.sql.strip()
-
-        if sqlparse:
-            # Indent the SQL query
-            sql = sqlparse.format(sql, reindent=True)
-
-        if pygments:
-            # Highlight the SQL query
-            sql = pygments.highlight(
-                sql,
-                SqlLexer(),
-                # TerminalTrueColorFormatter(style='monokai')
-                Terminal256Formatter(style='monokai')
+            sql = ' '.join(
+                l.strip()
+                for l in sqlparse.format(
+                    sql, reindent=True, keyword_case='upper'
+                ).splitlines()
             )
 
-        # Set the record's statement to the formatted query
-
-        if not hasattr(record, 'duration'):
-            # DDL statements don't have `duration` attribute set by Django
-            # loggers. Not much we can do about that
-            record.duration = 0
+            if self.colorize_queries:
+                sql = pygments.highlight(
+                    sql, SqlLexer(), Terminal256Formatter(style='monokai')
+                )
 
         record.statement = sql.strip()
+
+        # Django ORM only measures DML statements SQLAlchemy doesn't measure any
+        # statemens - it logs them before they are executed.
+        if hasattr(record, 'duration'):
+            record.duration = "{:.3f}ms".format(record.duration)
+        else:
+            record.duration = '_.___ms'
+
         return super().format(record)
 
 
