@@ -9,15 +9,15 @@ from collections import OrderedDict
 from datetime import datetime
 from functools import reduce
 from logging import NullHandler
+from operator import or_
+
 import pygments
+import pytz
+import sqlparse
+import tzlocal
+# from pygments.formatters import TerminalTrueColorFormatter
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import SqlLexer
-# from pygments.formatters import TerminalTrueColorFormatter
-from operator import or_
-import sqlparse
-
-import pytz
-import tzlocal
 
 from . import string_utilities
 
