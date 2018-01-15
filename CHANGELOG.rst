@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.2.7 (2018-01-15)
+------------------
+
+* logging_utilities now transaprently supports SQLAlchemy and optional
+  coloring of HTTP logs
+
 0.2.6 (2017-11-23)
 ------------------
 
