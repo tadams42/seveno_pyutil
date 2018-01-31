@@ -418,3 +418,20 @@ def log_to_console_for(logger_name):
     logger.setLevel(logging.DEBUG)
 
     logger.addHandler(handler)
+
+
+def log_to_tmp_file_for(logger_name):
+    """
+    Quick setup for given logger directing it to ``/tmp/seveno_pyutil.log``
+    This is of course mainly used during development, especially when playing
+    with things in Python console.
+    """
+
+    logger = logging.getLogger(logger_name)
+
+    handler = logging.FileHandler(filename='/tmp/seveno_pyutil.log')
+    handler.setLevel(logging.DEBUG)
+
+    logger.setLevel(logging.DEBUG)
+
+    logger.addHandler(handler)
