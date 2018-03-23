@@ -20,7 +20,7 @@ def file_checksum(file_path, hash_callable):
 def silent_create_dirs(dir_path):
     """Tries to create directory and silently skips if it exists."""
     try:
-        os.makedirs(os.abspath(dir_path))
+        os.makedirs(os.path.abspath(dir_path))
     except OSError as exception:
         # We don't care if dir already exists
         if (
