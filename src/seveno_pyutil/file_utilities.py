@@ -25,7 +25,11 @@ def silent_create_dirs(dir_path):
         # We don't care if dir already exists
         if (
             exception.errno != errno.EEXIST
-            or (exception.errno == errno.EEXIST and not os.path.isdir(dir_path))
+            or (
+                exception.errno == errno.EEXIST and not os.path.isdir(
+                    os.path.abspath(dir_path)
+                )
+            )
         ):
             raise
 
