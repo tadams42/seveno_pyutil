@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.0 (2018-03-27)
+-------------------
+* changed logging_utilities.DynamicContextFormatter ->
+  logging_utilities.DynamicContextFilter
+
 0.2.11 (2018-03-23)
 -------------------
 * small fixes
