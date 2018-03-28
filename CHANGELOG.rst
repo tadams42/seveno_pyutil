@@ -1,25 +1,35 @@
 Changelog
 =========
 
+0.3.1 (2018-03-28)
+-------------------
+
+* is_blank now works for empty lists, numbers, etc...
+
 0.3.0 (2018-03-27)
 -------------------
+
 * changed logging_utilities.DynamicContextFormatter ->
   logging_utilities.DynamicContextFilter
 
 0.2.11 (2018-03-23)
 -------------------
+
 * small fixes
 
 0.2.10 (2018-03-23)
 -------------------
+
 * small fixes
 
 0.2.9 (2018-03-23)
 ------------------
+
 * small fixes
 
 0.2.8 (2018-03-23)
 ------------------
+
 * small fixes
 
 0.2.7 (2018-01-15)
