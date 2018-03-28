@@ -72,7 +72,7 @@ Install
 
 ::
 
-    python setup.py develop --uninstall
+    python setup.py develop
 
 Install with extra dev packages
 
@@ -83,5 +83,5 @@ Install with extra dev packages
 Uninstall
 
 ::
-  
+
     python setup.py develop --uninstall
