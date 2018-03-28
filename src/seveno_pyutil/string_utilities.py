@@ -1,6 +1,4 @@
-from functools import reduce
 import six
-from operator import or_
 
 
 def is_blank(obj):
