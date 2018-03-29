@@ -6,6 +6,8 @@ class Stopwatch(object):
     Simple stopwatch that measures duration of block of code in [ms]
 
     Example:
+        >>> import time
+        >>>
         >>> with Stopwatch() as stopwatch:
         ...    time.sleep(1)
         >>> assert stopwatch.duration_ms >= 1000
