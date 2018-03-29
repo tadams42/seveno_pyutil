@@ -9,6 +9,14 @@ datetime_utilities
    :undoc-members:
    :show-inheritance:
 
+benchmarking_utilities
+----------------------
+
+.. automodule:: seveno_pyutil.benchmarking_utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 dict_utilities
 --------------
 
