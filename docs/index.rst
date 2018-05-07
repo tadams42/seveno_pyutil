@@ -1,4 +1,4 @@
-.. include:: ../README.rst
+.. mdinclude:: ../README.md
 
 Tables of contents and indices
 ------------------------------
@@ -9,6 +9,7 @@ Tables of contents and indices
 
    api
    license
+   changelog
 
 Indices and tables
 ==================
