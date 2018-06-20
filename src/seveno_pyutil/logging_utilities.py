@@ -90,7 +90,7 @@ class DynamicContextFilter(logging.Filter):
     of repetitive multi step process that needs to connect produced log lines
     into single context.
 
-    This filter will introduce following log format placehlders.
+    This filter will introduce following log format placeholders.
 
     +-------------------------------------+-----------------------------------+
     | placeholder                         | description                       |
@@ -224,7 +224,8 @@ class DynamicContextFilter(logging.Filter):
     @property
     def dynamic_context_keys_and_values(self):
         """
-        Generates data for ``record.dynamic_context_keys_and_values`` attribute.
+        Generates data for ``record.dynamic_context_keys_and_values``
+        attribute.
         """
         if self.has_any_context:
             return (
@@ -306,8 +307,8 @@ def log_http_request(request, colorized=False):
     )
 
     if (
-        getattr(request, "is_json", None) or
-        request.headers.get('Content-Type', None) == 'application/json'
+        getattr(request, "is_json", None)
+        or request.headers.get('Content-Type', None) == 'application/json'
     ):
         logger.info(
             "HTTP request payload: %s",
@@ -335,8 +336,8 @@ def log_http_response(
     )
 
     if (
-        getattr(response, 'content_type', None) == 'application/json' or
-        response.headers.get('Content-Type', None) == 'application/json'
+        getattr(response, 'content_type', None) == 'application/json'
+        or response.headers.get('Content-Type', None) == 'application/json'
     ):
         payload = getattr(response, 'json', ''
                          ) or response.data.decode('UTF-8')
@@ -425,7 +426,7 @@ class SQLFilter(logging.Filter):
     +-------------------+----------------------------------------------+
     """
     def __init__(self, colorize_queries=True, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(SQLFilter, self).__init__(*args, **kwargs)
         self.colorize_queries = colorize_queries
 
     def filter(self, record):
@@ -463,14 +464,14 @@ class SQLFilter(logging.Filter):
 
         record.statement = sql.strip()
 
-        # Django ORM only measures DML statements SQLAlchemy doesn't measure any
-        # statemens - it logs them before they are executed.
+        # Django ORM only measures DML statements SQLAlchemy doesn't measure
+        # any statemens - it logs them before they are executed.
         if hasattr(record, 'duration'):
             record.duration = "{:.3f}ms".format(record.duration)
         else:
             record.duration = '_.___ms'
 
-        return super().filter(record)
+        return super(SQLFilter, self).filter(record)
 
 
 class ColoredSQLFilter(SQLFilter):
@@ -486,7 +487,9 @@ class ColoredSQLFilter(SQLFilter):
     """
     def __init__(self, *args, **kwargs):
         kwargs.pop('colorize_queries', None)
-        super().__init__(colorize_queries=True, *args, **kwargs)
+        super(ColoredSQLFilter, self).__init__(
+            colorize_queries=True, *args, **kwargs
+        )
 
 
 class ColorlessSQLFilter(SQLFilter):
@@ -501,7 +504,9 @@ class ColorlessSQLFilter(SQLFilter):
     """
     def __init__(self, *args, **kwargs):
         kwargs.pop('colorize_queries', None)
-        super().__init__(colorize_queries=False, *args, **kwargs)
+        super(ColorlessSQLFilter, self).__init__(
+            colorize_queries=False, *args, **kwargs
+        )
 
 
 def log_to_console_for(logger_name):
@@ -544,7 +549,9 @@ class SingleLineFormatter(logging.Formatter):
     logged as single line.
     """
     def format(self, record):
-        return super().format(record).replace('\n', '\\n')
+        return super(SingleLineFormatter, self).format(record).replace(
+            '\n', '\\n'
+        )
 
 
 class SingleLineColoredFormatter(colorlog.ColoredFormatter):
@@ -553,4 +560,6 @@ class SingleLineColoredFormatter(colorlog.ColoredFormatter):
     logged as single line.
     """
     def format(self, record):
-        return super().format(record).replace('\n', '\\n')
+        return super(SingleLineColoredFormatter, self).format(record).replace(
+            '\n', '\\n'
+        )
