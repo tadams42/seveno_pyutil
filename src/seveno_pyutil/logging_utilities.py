@@ -399,9 +399,9 @@ def log_traceback_multiple_logs(logger_callable):
         logger_callable(line)
 
 
-class SQLFormatter(logging.Formatter):
+class SQLFilter(logging.Filter):
     """
-    Formatter for Django's and SQLAlchemy SQL loggers. Reformats and colorizes
+    Filter for Django's and SQLAlchemy SQL loggers. Reformats and colorizes
     queries.
 
     To use it with Django, add it to ``django.db.backends`` and
@@ -410,9 +410,9 @@ class SQLFormatter(logging.Formatter):
     To use it with SQLAlchemy, add it to ``sqlalchemy.engine`` logger.
 
     For convenience and for use in ``logging.config.dictConfig`` there are also
-    `.ColoredSQLFormatter` and `.ColorlessSQLFormatter`
+    `.ColoredSQLFilter` and `.ColorlessSQLFilter`
 
-    Formatter supports following loginng placeholders:
+    Filter supports following loging placeholders:
 
     +-------------------+----------------------------------------------+
     | placeholder       | description                                  |
@@ -427,7 +427,7 @@ class SQLFormatter(logging.Formatter):
         super().__init__(*args, **kwargs)
         self.colorize_queries = colorize_queries
 
-    def format(self, record):
+    def filter(self, record):
         if not hasattr(record, 'sql'):
             # SQLAlchemy logger puts SQL statements into ``record.msg``.
             sql = record.getMessage().strip()
@@ -436,7 +436,7 @@ class SQLFormatter(logging.Formatter):
             sql = record.sql.strip()
 
         # SQLAlchemy logger creates two types of log records: one with SQL
-        # statements which is followed by antoher that has query parameters
+        # statements which is followed by another that has query parameters
         if sql.startswith('{'):
             try:
                 params_json = json.loads(sql.replace("'", '"'))
@@ -469,41 +469,34 @@ class SQLFormatter(logging.Formatter):
         else:
             record.duration = '_.___ms'
 
-        return super().format(record)
+        return super().filter(record)
 
 
-class ColoredSQLFormatter(SQLFormatter):
-    """
-    Formatter for Django's SQL logger that colorizes SQL in log. Don't use with
-    ``syslog``, it is ugly and wrong. And remember to use ``less -R`` to enjoy.
+class ColoredSQLFilter(SQLFilter):
+    """Filter for Django's SQL logger that colorizes SQL in log.
 
-    Example logging dict config::
+    Don't use with ``syslog``, it is ugly and wrong. And remember to use
+    ``less -R`` to enjoy.
 
-        {
-            'colored_sql': {
-                '()': 'ColoredSQLFormatter',
-                'format': '(%(duration).3f) %(statement)s'
-            }
-        }
+    Example:
 
+        # logging.config.dictConfig
+        {"filters": {"sql": {'()': 'ColoredSQLFilter'}}}
     """
     def __init__(self, *args, **kwargs):
         kwargs.pop('colorize_queries', None)
         super().__init__(colorize_queries=True, *args, **kwargs)
 
 
-class ColorlessSQLFormatter(SQLFormatter):
-    """
-    Formatter for Django's SQL logger that produces colorless SQL in log.
-    Suitable for use with ``syslog``. Example logging dict config::
+class ColorlessSQLFilter(SQLFilter):
+    """Filter for Django's SQL logger that produces colorless SQL in log.
 
-        {
-            'syslog_sql': {
-                '()': 'ColorlessSQLFormatter',
-                'format': RFC5424_PREFIX + '(%(duration).3f) %(statement)s'
-            }
-        }
+    Suitable for use with ``syslog``.
 
+    Example:
+
+        # logging.config.dictConfig
+        {"filters": {"sql": {'()': 'ColorlessSQLFilter'}}}
     """
     def __init__(self, *args, **kwargs):
         kwargs.pop('colorize_queries', None)
@@ -527,7 +520,7 @@ def log_to_console_for(logger_name):
     logger.addHandler(handler)
 
 
-def log_to_tmp_file_for(logger_name):
+def log_to_tmp_file_for(logger_name, file_path='/tmp/seveno_pyutil.log'):
     """
     Quick setup for given logger directing it to ``/tmp/seveno_pyutil.log``
     This is of course mainly used during development, especially when playing
@@ -536,7 +529,7 @@ def log_to_tmp_file_for(logger_name):
 
     logger = logging.getLogger(logger_name)
 
-    handler = logging.FileHandler(filename='/tmp/seveno_pyutil.log')
+    handler = logging.FileHandler(filename=file_path)
     handler.setLevel(logging.DEBUG)
 
     logger.setLevel(logging.DEBUG)

@@ -92,6 +92,8 @@ setup(
             'isort',
             'check-manifest',
 
+            'pylint',
+
             # IPython stuff
             'ipython',
             'jupyter',
