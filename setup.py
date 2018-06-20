@@ -25,13 +25,19 @@ def read(*names, **kwargs):
 
 setup(
     name="seveno_pyutil",
-    version='0.3.2',
+    version='0.4.0',
     license='MIT',
     description="Various unsorted Python utilities",
     long_description='%s\n%s' % (
-        re.compile('^.. start-badges.*^.. end-badges', re.M | re.S).sub('', read('README.rst')),
-        re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))
+        re.compile(
+            '^' + re.escape('[//]: # (start-badges)') + '.*^'
+            + re.escape('[//]: # (end-badges)'), re.M | re.S
+        ).sub('', read('README.md')),
+        # re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))
+        ''
     ),
+    # In the future this will correctly render Markdown on PyPi:
+    # long_description_content_type='text/markdown',
     author="Tomislav Adamic",
     author_email="tomislav.adamic@gmail.com",
     url="https://github.com/tadams42/seveno_pyutil",
@@ -74,12 +80,19 @@ setup(
     # for example:
     # $ pip install -e .[dev]
     extras_require={
+        'docs': [
+            'sphinx >= 1.4',
+            'sphinx_rtd_theme',
+            'm2r >= 0.1.14',
+        ],
         'dev': [
             'pycodestyle',
             'yapf',
             'bumpversion',
             'isort',
             'check-manifest',
+
+            'pylint',
 
             # IPython stuff
             'ipython',
@@ -89,6 +102,7 @@ setup(
             # Docs and viewers
             'sphinx',
             'sphinx_rtd_theme',
+            'm2r',
 
             # py.test stuff
             'pytest >= 3.0.0',

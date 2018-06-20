@@ -11,6 +11,7 @@ from functools import reduce
 from logging import NullHandler
 from operator import or_
 
+import colorlog
 import pygments
 import pytz
 import sqlparse
@@ -89,7 +90,7 @@ class DynamicContextFilter(logging.Filter):
     of repetitive multi step process that needs to connect produced log lines
     into single context.
 
-    This filter will introduce following log format placehlders.
+    This filter will introduce following log format placeholders.
 
     +-------------------------------------+-----------------------------------+
     | placeholder                         | description                       |
@@ -223,7 +224,8 @@ class DynamicContextFilter(logging.Filter):
     @property
     def dynamic_context_keys_and_values(self):
         """
-        Generates data for ``record.dynamic_context_keys_and_values`` attribute.
+        Generates data for ``record.dynamic_context_keys_and_values``
+        attribute.
         """
         if self.has_any_context:
             return (
@@ -305,8 +307,8 @@ def log_http_request(request, colorized=False):
     )
 
     if (
-        getattr(request, "is_json", None) or
-        request.headers.get('Content-Type', None) == 'application/json'
+        getattr(request, "is_json", None)
+        or request.headers.get('Content-Type', None) == 'application/json'
     ):
         logger.info(
             "HTTP request payload: %s",
@@ -334,8 +336,8 @@ def log_http_response(
     )
 
     if (
-        getattr(response, 'content_type', None) == 'application/json' or
-        response.headers.get('Content-Type', None) == 'application/json'
+        getattr(response, 'content_type', None) == 'application/json'
+        or response.headers.get('Content-Type', None) == 'application/json'
     ):
         payload = getattr(response, 'json', ''
                          ) or response.data.decode('UTF-8')
@@ -399,9 +401,9 @@ def log_traceback_multiple_logs(logger_callable):
         logger_callable(line)
 
 
-class SQLFormatter(logging.Formatter):
+class SQLFilter(logging.Filter):
     """
-    Formatter for Django's and SQLAlchemy SQL loggers. Reformats and colorizes
+    Filter for Django's and SQLAlchemy SQL loggers. Reformats and colorizes
     queries.
 
     To use it with Django, add it to ``django.db.backends`` and
@@ -410,9 +412,9 @@ class SQLFormatter(logging.Formatter):
     To use it with SQLAlchemy, add it to ``sqlalchemy.engine`` logger.
 
     For convenience and for use in ``logging.config.dictConfig`` there are also
-    `.ColoredSQLFormatter` and `.ColorlessSQLFormatter`
+    `.ColoredSQLFilter` and `.ColorlessSQLFilter`
 
-    Formatter supports following loginng placeholders:
+    Filter supports following loging placeholders:
 
     +-------------------+----------------------------------------------+
     | placeholder       | description                                  |
@@ -424,10 +426,10 @@ class SQLFormatter(logging.Formatter):
     +-------------------+----------------------------------------------+
     """
     def __init__(self, colorize_queries=True, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(SQLFilter, self).__init__(*args, **kwargs)
         self.colorize_queries = colorize_queries
 
-    def format(self, record):
+    def filter(self, record):
         if not hasattr(record, 'sql'):
             # SQLAlchemy logger puts SQL statements into ``record.msg``.
             sql = record.getMessage().strip()
@@ -436,7 +438,7 @@ class SQLFormatter(logging.Formatter):
             sql = record.sql.strip()
 
         # SQLAlchemy logger creates two types of log records: one with SQL
-        # statements which is followed by antoher that has query parameters
+        # statements which is followed by another that has query parameters
         if sql.startswith('{'):
             try:
                 params_json = json.loads(sql.replace("'", '"'))
@@ -462,52 +464,49 @@ class SQLFormatter(logging.Formatter):
 
         record.statement = sql.strip()
 
-        # Django ORM only measures DML statements SQLAlchemy doesn't measure any
-        # statemens - it logs them before they are executed.
+        # Django ORM only measures DML statements SQLAlchemy doesn't measure
+        # any statemens - it logs them before they are executed.
         if hasattr(record, 'duration'):
             record.duration = "{:.3f}ms".format(record.duration)
         else:
             record.duration = '_.___ms'
 
-        return super().format(record)
+        return super(SQLFilter, self).filter(record)
 
 
-class ColoredSQLFormatter(SQLFormatter):
-    """
-    Formatter for Django's SQL logger that colorizes SQL in log. Don't use with
-    ``syslog``, it is ugly and wrong. And remember to use ``less -R`` to enjoy.
+class ColoredSQLFilter(SQLFilter):
+    """Filter for Django's SQL logger that colorizes SQL in log.
 
-    Example logging dict config::
+    Don't use with ``syslog``, it is ugly and wrong. And remember to use
+    ``less -R`` to enjoy.
 
-        {
-            'colored_sql': {
-                '()': 'ColoredSQLFormatter',
-                'format': '(%(duration).3f) %(statement)s'
-            }
-        }
+    Example:
 
+        # logging.config.dictConfig
+        {"filters": {"sql": {'()': 'ColoredSQLFilter'}}}
     """
     def __init__(self, *args, **kwargs):
         kwargs.pop('colorize_queries', None)
-        super().__init__(colorize_queries=True, *args, **kwargs)
+        super(ColoredSQLFilter, self).__init__(
+            colorize_queries=True, *args, **kwargs
+        )
 
 
-class ColorlessSQLFormatter(SQLFormatter):
-    """
-    Formatter for Django's SQL logger that produces colorless SQL in log.
-    Suitable for use with ``syslog``. Example logging dict config::
+class ColorlessSQLFilter(SQLFilter):
+    """Filter for Django's SQL logger that produces colorless SQL in log.
 
-        {
-            'syslog_sql': {
-                '()': 'ColorlessSQLFormatter',
-                'format': RFC5424_PREFIX + '(%(duration).3f) %(statement)s'
-            }
-        }
+    Suitable for use with ``syslog``.
 
+    Example:
+
+        # logging.config.dictConfig
+        {"filters": {"sql": {'()': 'ColorlessSQLFilter'}}}
     """
     def __init__(self, *args, **kwargs):
         kwargs.pop('colorize_queries', None)
-        super().__init__(colorize_queries=False, *args, **kwargs)
+        super(ColorlessSQLFilter, self).__init__(
+            colorize_queries=False, *args, **kwargs
+        )
 
 
 def log_to_console_for(logger_name):
@@ -527,7 +526,7 @@ def log_to_console_for(logger_name):
     logger.addHandler(handler)
 
 
-def log_to_tmp_file_for(logger_name):
+def log_to_tmp_file_for(logger_name, file_path='/tmp/seveno_pyutil.log'):
     """
     Quick setup for given logger directing it to ``/tmp/seveno_pyutil.log``
     This is of course mainly used during development, especially when playing
@@ -536,9 +535,31 @@ def log_to_tmp_file_for(logger_name):
 
     logger = logging.getLogger(logger_name)
 
-    handler = logging.FileHandler(filename='/tmp/seveno_pyutil.log')
+    handler = logging.FileHandler(filename=file_path)
     handler.setLevel(logging.DEBUG)
 
     logger.setLevel(logging.DEBUG)
 
     logger.addHandler(handler)
+
+
+class SingleLineFormatter(logging.Formatter):
+    """
+    logging.Formatter that escapes all new lines forcing log record to be
+    logged as single line.
+    """
+    def format(self, record):
+        return super(SingleLineFormatter, self).format(record).replace(
+            '\n', '\\n'
+        )
+
+
+class SingleLineColoredFormatter(colorlog.ColoredFormatter):
+    """
+    logging.Formatter that escapes all new lines forcing log record to be
+    logged as single line.
+    """
+    def format(self, record):
+        return super(SingleLineColoredFormatter, self).format(record).replace(
+            '\n', '\\n'
+        )

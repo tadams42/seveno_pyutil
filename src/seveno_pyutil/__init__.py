@@ -1,4 +1,4 @@
-__version__ = '0.3.2'
+__version__ = '0.4.0'
 
 import logging
 import sys
@@ -14,8 +14,10 @@ from .file_utilities import (abspath_if_relative, file_checksum,
                              silent_remove, switch_extension)
 from .logging_utilities import (COLORED_FILELOG_PREFIX,
                                 COLORLESS_FILELOG_PREFIX, RFC5424_PREFIX,
-                                ColoredSQLFormatter, ColorlessSQLFormatter,
-                                DynamicContextFilter, SQLFormatter,
+                                ColoredSQLFilter, ColorlessSQLFilter,
+                                DynamicContextFilter,
+                                SingleLineColoredFormatter,
+                                SingleLineFormatter, SQLFilter,
                                 StandardMetadataFilter, log_http_request,
                                 log_http_response, log_to_console_for,
                                 log_to_tmp_file_for,
