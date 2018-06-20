@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 (2018-06-20)
+
+* Converted logging utilities SQLFormatter-s into SQLFilter-s.
+* Added single line formatters to logging utilties
+
 ## 0.3.2 (2018-03-29)
 
 * Implemented Stopwatch context manager
