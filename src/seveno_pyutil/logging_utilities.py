@@ -11,6 +11,7 @@ from functools import reduce
 from logging import NullHandler
 from operator import or_
 
+import colorlog
 import pygments
 import pytz
 import sqlparse
@@ -535,3 +536,21 @@ def log_to_tmp_file_for(logger_name, file_path='/tmp/seveno_pyutil.log'):
     logger.setLevel(logging.DEBUG)
 
     logger.addHandler(handler)
+
+
+class SingleLineFormatter(logging.Formatter):
+    """
+    logging.Formatter that escapes all new lines forcing log record to be
+    logged as single line.
+    """
+    def format(self, record):
+        return super().format(record).replace('\n', '\\n')
+
+
+class SingleLineColoredFormatter(colorlog.ColoredFormatter):
+    """
+    logging.Formatter that escapes all new lines forcing log record to be
+    logged as single line.
+    """
+    def format(self, record):
+        return super().format(record).replace('\n', '\\n')
