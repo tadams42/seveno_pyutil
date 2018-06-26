@@ -67,17 +67,20 @@ def move_and_create_dest(src_path, dst_dir):
     return os.path.join(dst_dir, os.path.basename(src_path))
 
 
-def silent_remove(file_path):
+def silent_remove(file_or_dir_path):
     """
-    Same as `os.remove` with aditional condition it doesn't rise exceptio if
-    file doesn't exist.
+    Deletes file or directory (even if not empty). Doesn't rise if it doesn't
+    exist.
     """
 
-    if is_blank(file_path):
+    if is_blank(file_or_dir_path):
         return None
 
     try:
-        os.remove(file_path)
+        if (os.path.isdir(file_or_dir_path)):
+            shutil.rmtree(file_or_dir_path)
+        else:
+            os.remove(file_or_dir_path)
 
     except OSError as e:
         if e.errno != errno.ENOENT:

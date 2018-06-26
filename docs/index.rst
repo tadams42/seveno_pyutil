@@ -7,6 +7,7 @@ Tables of contents and indices
    :maxdepth: 2
    :caption: Contents:
 
+   examples_and_usage
    api
    license
    changelog
