@@ -73,3 +73,11 @@ string_utilities
    :members:
    :undoc-members:
    :show-inheritance:
+
+collections_utilities
+---------------------
+
+.. automodule:: seveno_pyutil.collections_utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:

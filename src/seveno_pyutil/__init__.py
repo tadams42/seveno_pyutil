@@ -7,6 +7,7 @@ from . import (datetime_utilities, dict_utilities, file_utilities,
                logging_utilities, metaprogramming_helpers, model_utilities,
                os_utilities, string_utilities)
 from .benchmarking_utilities import Stopwatch
+from .collections_utilities import in_batches
 from .datetime_utilities import ensure_tzinfo
 from .dict_utilities import inverted
 from .file_utilities import (abspath_if_relative, file_checksum,
