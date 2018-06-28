@@ -198,3 +198,33 @@ Testing if we are dealing with blank data
 
     is_blank("0")
     # => False
+
+Processing iterable in batches
+------------------------------
+
+.. code-block:: python
+
+    from functools import partial
+    import random
+    import time
+    import threading
+
+    from seveno_pyutil import in_batches
+
+    def process_item(foo):
+        time.sleep(random.random() * 0.5)
+        print(foo)
+
+    for batch in in_batches(range(42), of_size=5):
+        workers = [
+            threading.Thread(target=partial(process_item, itm))
+            for itm in batch
+        ]
+
+        for worker in workers:
+            worker.start()
+
+        for worker in workers:
+            worker.join()
+
+        print("batch %s done" % batch)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.2 (2018-06-28)
+
+* Added `in_batches` function
+
+## 0.4.1 (2018-06-26)
+
+* silent_remove now removes directories too.
+
 ## 0.4.0 (2018-06-20)
 
 * Converted logging utilities SQLFormatter-s into SQLFilter-s.
