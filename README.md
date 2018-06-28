@@ -12,7 +12,7 @@
 
 [//]: # (end-badges)
 
-Various unsorted Python utilities.
+Various unsorted Python utilities. [Examples of usage](http://seveno-pyutil.readthedocs.io/en/latest/examples_and_usage.html)
 
 ## Installation
 
