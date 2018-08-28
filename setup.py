@@ -106,7 +106,6 @@ setup(
 
             # py.test stuff
             'pytest >= 3.0.0',
-            'pytest-pythonpath',
             'colored-traceback',
             'pytest-sugar',
             'pytest-cov',
