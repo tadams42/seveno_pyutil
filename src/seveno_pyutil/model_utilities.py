@@ -6,6 +6,18 @@ from marshmallow import ValidationError, fields
 from .metaprogramming_helpers import import_string
 
 
+class IsoTimeField(fields.DateTime):
+    def __init__(self, **kwargs):
+        kwargs = dict([(k, v) for k, v in kwargs.items() if k != 'format'])
+        super().__init__(format='iso', **kwargs)
+
+    def _serialize(self, value, attr, obj):
+        if value and hasattr(value, 'microsecond'):
+            value = value.replace(microsecond=0)
+
+        return super()._serialize(value, attr, obj)
+
+
 class ValidateableMixin(object):
     """
     Mixin for objects supporting validation through marshmallow schema.

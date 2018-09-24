@@ -26,7 +26,8 @@ from .logging_utilities import (COLORED_FILELOG_PREFIX,
                                 log_traceback_single_log, silence_logger)
 from .metaprogramming_helpers import (all_subclasses, import_string,
                                       leaf_subclasses)
-from .model_utilities import RepresentableMixin, ValidateableMixin
+from .model_utilities import (IsoTimeField, RepresentableMixin,
+                              ValidateableMixin)
 from .os_utilities import current_user, current_user_home
 from .string_utilities import is_blank
 

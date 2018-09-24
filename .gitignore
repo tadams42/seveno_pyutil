@@ -70,3 +70,6 @@ docs/_build
 *.bak
 
 .pytest_cache/
+
+
+.vscode/
