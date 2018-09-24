@@ -15,7 +15,6 @@ from .file_utilities import (abspath_if_relative, file_checksum,
                              silent_remove, switch_extension)
 from .logging_utilities import (COLORED_FILELOG_PREFIX,
                                 COLORLESS_FILELOG_PREFIX, RFC5424_PREFIX,
-                                ColoredSQLFilter, ColorlessSQLFilter,
                                 DynamicContextFilter,
                                 SingleLineColoredFormatter,
                                 SingleLineFormatter, SQLFilter,
@@ -29,7 +28,7 @@ from .metaprogramming_helpers import (all_subclasses, import_string,
 from .model_utilities import (IsoTimeField, RepresentableMixin,
                               ValidateableMixin)
 from .os_utilities import current_user, current_user_home
-from .string_utilities import is_blank, JSONEncoderWithDateTime
+from .string_utilities import JSONEncoderWithDateTime, is_blank
 
 if sys.version_info < (3, 4, 0):
     from .compatibility import py34_min as min

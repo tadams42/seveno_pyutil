@@ -59,8 +59,8 @@ def move_and_create_dest(src_path, dst_dir):
     """
     Moves ``src_path`` to ``dst_dir`` directory.
 
-    Expects ``dst_dir`` to be directory and if it doesn't exits, tries to create
-    it.
+    Expects ``dst_dir`` to be directory and if it doesn't exits, tries to
+    create it.
     """
     silent_create_dirs(dst_dir)
     shutil.move(src_path, dst_dir)

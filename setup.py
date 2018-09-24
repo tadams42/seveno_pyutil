@@ -71,7 +71,7 @@ setup(
         'pytz',
         'tzlocal',
         'colorlog',
-        'marshmallow >= 3.0.0b14',
+        'marshmallow',
         'pygments',
         'sqlparse'
     ],
@@ -91,13 +91,10 @@ setup(
             'bumpversion',
             'isort',
             'check-manifest',
-
             'pylint',
 
             # IPython stuff
             'ipython',
-            'jupyter',
-            'ipdb',
 
             # Docs and viewers
             'sphinx',

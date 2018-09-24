@@ -8,6 +8,7 @@ import socket
 import sys
 import threading
 import time
+import timeit
 import traceback
 from collections import OrderedDict
 from datetime import datetime
@@ -18,6 +19,7 @@ from operator import or_
 import colorlog
 import pygments
 import pytz
+import six
 import sqlparse
 import tzlocal
 # from pygments.formatters import TerminalTrueColorFormatter
@@ -290,6 +292,9 @@ def log_http_request(request, colorized=False):
     Log some stuff from HTTP request.
 
     Known to work with Flask and Django request objects.
+
+    Todo:
+        Convert into `logging.Filter`
     """
 
     # Requests received by local Flask will have "path" and "url".
@@ -328,6 +333,9 @@ def log_http_response(
     Log some stuff from HTTP request.
 
     Known to work with Flask and Django request objects.
+
+    Todo:
+        Convert into `logging.Filter`
     """
 
     headers = ((k.strip(), v.strip()) for k, v in response.headers)
@@ -355,7 +363,7 @@ def log_http_response(
         logger.info(
             "HTTP response payload: %s", (
                 _colored_json(dict(payload))
-                if colorized else json.dumps(dict(payload))
+                if colorized else json.dumpsdumps(dict(payload))
             ).strip()
         )
 
@@ -410,107 +418,213 @@ class SQLFilter(logging.Filter):
     Filter for Django's and SQLAlchemy SQL loggers. Reformats and colorizes
     queries.
 
-    To use it with Django, add it to ``django.db.backends`` and
-    ``django.db.backends.schema`` loggers.
+    To use it with Django:
 
-    To use it with SQLAlchemy, add it to ``sqlalchemy.engine`` logger.
+    - add it to ``django.db.backends`` and ``django.db.backends.schema``
+      loggers
+    - remove ``%(message)s`` from log format because it will cause to double
+      emit each SQL statement. Use this filter's placeholder's instead.
 
-    For convenience and for use in ``logging.config.dictConfig`` there are also
-    `.ColoredSQLFilter` and `.ColorlessSQLFilter`
+    To use it with SQLAlchemy:
 
-    Filter supports following loging placeholders:
+    - add it to ``sqlalchemy.engine`` logger and call
+      `:meth:register_sqlalchemy_logging_events`
+
+    Supports following loging placeholders:
 
     +-------------------+----------------------------------------------+
     | placeholder       | description                                  |
     +-------------------+----------------------------------------------+
-    | %(statement)s     | SQL statement being executed (SQLAlchemy)    |
-    |                   | or that was executed (Django)                |
+    | %(sql)s           | Formatted SQL statement that was executed    |
     +-------------------+----------------------------------------------+
-    | %(duration)s      | Duration of SQL execution in [ms]            |
+    | %(sql_duration)s  | Formatted duration of SQL execution          |
     +-------------------+----------------------------------------------+
+
+    Arguments:
+        colorize_queries(bool): Should apply shell coloring escape sequences to
+            formatted SQL?
+        multiline_queries(bool): Should emit SQL as indented, multiline of
+            single line log statements? In development it is usually nice to
+            have it be `True`. In production environments, multiline logs are
+            pain and should be avoided.
+
+    Example::
+
+        import logging
+        from logging.config import dictConfig
+
+        from seveno_pyutil import SQLFilter
+
+        try:
+            import sqlalchemy
+            SQLFilter.register_sqlalchemy_logging_events('myapp.db')
+        except ImportError:
+            pass
+
+        dictConfig({
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'django_sql': {'format': '(%(sql_duration)s) %(sql)s'},
+                'sqlalchemy_sql': {'format': '(%(sql_duration)s) %(sql)s %(message)s'}
+            },
+            'filters': {
+                'colored_sql': {
+                    '()': 'seveno_pyutil.SQLFilter'
+                    'colorize_queries': True,
+                    'multiline_queries': True,
+                }
+            },
+            'handlers': {
+                'console_django': {
+                    'class': 'logging.StreamHandler',
+                    'level': 'DEBUG',
+                    'formatter': 'django_sql',
+                    'filters': ['colored_sql'],
+                    'stream': 'ext://sys.stdout'
+                },
+                'console_sqlalchemy': {
+                    'class': 'logging.StreamHandler',
+                    'level': 'DEBUG',
+                    'formatter': 'sqlalchemy_sql',
+                    'filters': ['colored_sql'],
+                    'stream': 'ext://sys.stdout'
+                }
+            },
+            'loggers': {
+                'myapp.db': {
+                    'level': 'DEBUG',
+                    'propagate': False,
+                    'handlers': ['console_sqlalchemy']
+                },
+                'django.db.backends': {
+                    'level': 'DEBUG',
+                    'propagate': False,
+                    'handlers': ['console_django']
+                },
+                'django.db.backends.schema': {
+                    'level': 'DEBUG',
+                    'propagate': False,
+                    'handlers': ['console_django']
+                }
+            }
+        })
+
     """
-    def __init__(self, colorize_queries=True, *args, **kwargs):
-        super(SQLFilter, self).__init__(*args, **kwargs)
-        self.colorize_queries = colorize_queries
+    @classmethod
+    def register_sqlalchemy_logging_events(cls, logger):
+        """Must be called when logging SQLAlchemy statements and durations."""
 
-    def filter(self, record):
-        if not hasattr(record, 'sql'):
-            # SQLAlchemy logger puts SQL statements into ``record.msg``.
-            sql = record.getMessage().strip()
-        else:
-            # Django ORM logger puts SQL statements into ``record.sql``.
-            sql = record.sql.strip()
+        from sqlalchemy import event
+        from sqlalchemy.engine import Engine
 
-        # SQLAlchemy logger creates two types of log records: one with SQL
-        # statements which is followed by another that has query parameters
-        if sql.startswith('{'):
-            try:
-                params_json = json.loads(sql.replace("'", '"'))
-            except Exception:
-                params_json = None
+        _logger = logger
+        if isinstance(logger, six.string_types):
+            _logger = logging.getLogger(logger)
 
-            if self.colorize_queries and params_json:
-                sql = 'Query parameters: ' + _colored_json(params_json)
-            else:
-                sql = 'Query parameters: ' + sql
-        else:
-            sql = ' '.join(
-                l.strip()
-                for l in sqlparse.format(
-                    sql, reindent=True, keyword_case='upper'
-                ).splitlines()
+        @event.listens_for(Engine, "before_cursor_execute")
+        def before_cursor_execute(
+            conn, cursor, statement, parameters, context, executemany
+        ):
+            conn.info.setdefault(
+                'query_start_time', []).append(timeit.default_timer()
             )
 
-            if self.colorize_queries:
+        @event.listens_for(Engine, "after_cursor_execute")
+        def after_cursor_execute(
+            conn, cursor, statement, parameters, context, executemany
+        ):
+            _logger.debug("", extra={
+                'sql_statement': statement,
+                'sql_parameters': parameters,
+                'sql_duration_ms': (
+                    timeit.default_timer()
+                    - conn.info['query_start_time'].pop(-1)
+                ) * 1000
+            })
+
+        @event.listens_for(Engine, "handle_error")
+        def receive_handle_error(exception_context):
+            _logger.critical("", extra={
+                'sql_statement': exception_context.statement,
+                'sql_parameters': exception_context.parameters,
+                'sql_duration_ms': (
+                    timeit.default_timer()
+                    - exception_context.connection.info['query_start_time'].pop(-1)
+                ) * 1000
+            })
+
+    def __init__(
+        self, colorize_queries=False, multiline_queries=False, *args, **kwargs
+    ):
+        self.colorize_queries = colorize_queries
+        self.multiline_queries = multiline_queries
+        super(SQLFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, record):
+        sql = (
+            # SQLAlchemy
+            getattr(record, 'sql_statement', None)
+            # Django
+            or getattr(record, 'sql', None)
+            or ""
+        )
+
+        if sql:
+            if self.multiline_queries:
+                sql = sqlparse.format(
+                    sql, reindent=True, keyword_case='upper'
+                ).strip()
+            else:
+                sql = ' '.join(
+                    l.strip()
+                    for l in sqlparse.format(
+                        sql, reindent=True, keyword_case='upper'
+                    ).splitlines()
+                ).strip()
+
+            if sql and not sql.endswith(';'):
+                sql = sql + ';'
+
+        if hasattr(record, 'sql_parameters'):
+            params_dict = record.sql_parameters
+            params = json.dumps(
+                record.sql_parameters,
+                cls=string_utilities.JSONEncoderWithDateTime
+            ).strip()
+        else:
+            params_dict = {}
+            params = ""
+
+        if self.colorize_queries:
+            if sql:
                 sql = pygments.highlight(
                     sql, SqlLexer(), Terminal256Formatter(style='monokai')
-                )
+                ).strip()
 
-        record.statement = sql.strip()
+            if params:
+                params = pygments.highlight(
+                    params,
+                    pygments.lexers.get_lexer_for_mimetype('application/json'),
+                    Terminal256Formatter(style='monokai')
+                ).strip()
 
-        # Django ORM only measures DML statements SQLAlchemy doesn't measure
-        # any statemens - it logs them before they are executed.
-        if hasattr(record, 'duration'):
-            record.duration = "{:.3f}ms".format(record.duration)
+        if params and params_dict:
+            record.sql = "{} with params {}".format(sql, params)
         else:
-            record.duration = '_.___ms'
+            record.sql = sql or 'SQL'
 
-        return super(SQLFilter, self).filter(record)
-
-
-class ColoredSQLFilter(SQLFilter):
-    """Filter for Django's SQL logger that colorizes SQL in log.
-
-    Don't use with ``syslog``, it is ugly and wrong. And remember to use
-    ``less -R`` to enjoy.
-
-    Example:
-
-        # logging.config.dictConfig
-        {"filters": {"sql": {'()': 'ColoredSQLFilter'}}}
-    """
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('colorize_queries', None)
-        super(ColoredSQLFilter, self).__init__(
-            colorize_queries=True, *args, **kwargs
+        duration = (
+            getattr(record, 'sql_duration_ms', None)
+            or getattr(record, 'duration', None)
         )
 
+        if duration:
+            record.sql_duration = "{:.3f} ms".format(duration)
+        else:
+            record.sql_duration = '_.___ ms'
 
-class ColorlessSQLFilter(SQLFilter):
-    """Filter for Django's SQL logger that produces colorless SQL in log.
-
-    Suitable for use with ``syslog``.
-
-    Example:
-
-        # logging.config.dictConfig
-        {"filters": {"sql": {'()': 'ColorlessSQLFilter'}}}
-    """
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('colorize_queries', None)
-        super(ColorlessSQLFilter, self).__init__(
-            colorize_queries=False, *args, **kwargs
-        )
+        return super().filter(record)
 
 
 def log_to_console_for(logger_name):
@@ -561,7 +675,7 @@ class SingleLineFormatter(logging.Formatter):
 class SingleLineColoredFormatter(colorlog.ColoredFormatter):
     """
     logging.Formatter that escapes all new lines forcing log record to be
-    logged as single line.
+    logged as single line but it also preserves colored log sequences.
     """
     def format(self, record):
         return super(SingleLineColoredFormatter, self).format(record).replace(

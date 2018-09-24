@@ -38,8 +38,7 @@ logging_utilities
 -----------------
 
 .. automodule:: seveno_pyutil.logging_utilities
-   :members:
-   :undoc-members:
+   :members: StandardMetadataFilter, DynamicContextFilter, silence_logger, SQLFilter, log_http_request, log_http_response, log_to_console_for, log_to_tmp_file_for, SingleLineFormatter, SingleLineColoredFormatter
    :show-inheritance:
 
 metaprogramming_helpers
