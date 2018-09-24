@@ -1,4 +1,11 @@
+from datetime import datetime
+
 import six
+
+try:
+    import simplejson as json
+except Exception:
+    import json
 
 
 def is_blank(obj):
@@ -21,3 +28,10 @@ def is_blank(obj):
         retv = False
 
     return retv
+
+
+class JSONEncoderWithDateTime(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.isoformat()
+        return super().default(o)

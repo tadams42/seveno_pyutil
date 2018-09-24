@@ -29,7 +29,7 @@ from .metaprogramming_helpers import (all_subclasses, import_string,
 from .model_utilities import (IsoTimeField, RepresentableMixin,
                               ValidateableMixin)
 from .os_utilities import current_user, current_user_home
-from .string_utilities import is_blank
+from .string_utilities import is_blank, JSONEncoderWithDateTime
 
 if sys.version_info < (3, 4, 0):
     from .compatibility import py34_min as min

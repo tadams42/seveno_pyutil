@@ -1,4 +1,8 @@
-import json
+try:
+    import simplejson as json
+except Exception:
+    import json
+
 import logging
 import socket
 import sys
