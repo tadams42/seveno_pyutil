@@ -71,7 +71,7 @@ setup(
         'pytz',
         'tzlocal',
         'colorlog',
-        'marshmallow',
+        'marshmallow >= 3.0.0b14',
         'pygments',
         'sqlparse'
     ],
