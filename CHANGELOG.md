@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.3 (2018-09-26)
+
+* Refactored and improved SQLAlchemy logging capabilities of SQLFilter
+* Added JSONEncoderWithDateTime
+* Added IsoTimeField
+* Fixed problems with Validateable, renamed to ValidateableMixin
+* Added 'import_string' - ripped from Django, need it elsewhere so like to have it independent of Django
+
 ## 0.4.2 (2018-06-28)
 
 * Added `in_batches` function

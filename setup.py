@@ -25,7 +25,7 @@ def read(*names, **kwargs):
 
 setup(
     name="seveno_pyutil",
-    version='0.4.2',
+    version='0.4.3',
     license='MIT',
     description="Various unsorted Python utilities",
     long_description='%s\n%s' % (
@@ -91,13 +91,10 @@ setup(
             'bumpversion',
             'isort',
             'check-manifest',
-
             'pylint',
 
             # IPython stuff
             'ipython',
-            'jupyter',
-            'ipdb',
 
             # Docs and viewers
             'sphinx',
@@ -106,7 +103,6 @@ setup(
 
             # py.test stuff
             'pytest >= 3.0.0',
-            'pytest-pythonpath',
             'colored-traceback',
             'pytest-sugar',
             'pytest-cov',

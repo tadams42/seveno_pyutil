@@ -1,43 +1,68 @@
 from collections import defaultdict
 from datetime import datetime
 
-from marshmallow import ValidationError
+from marshmallow import ValidationError, fields
+
+from .metaprogramming_helpers import import_string
 
 
-class Validateable(object):
-    """Mixin for objects supporting validation through marshmallow schema."""
+class IsoTimeField(fields.DateTime):
+    def __init__(self, **kwargs):
+        kwargs = dict([(k, v) for k, v in kwargs.items() if k != 'format'])
+        super().__init__(format='iso', **kwargs)
 
-    def __init__(self):
+    def _serialize(self, value, attr, obj):
+        if value and hasattr(value, 'microsecond'):
+            value = value.replace(microsecond=0)
+
+        return super()._serialize(value, attr, obj)
+
+
+class ValidateableMixin(object):
+    """
+    Mixin for objects supporting validation through marshmallow schema.
+
+    Child classes must define ``SCHEMA_CLASS`` as either `str` of `class`
+    """
+
+    #: str or class designating marshmallow schema that should be use to
+    #: validate instances of this class
+    SCHEMA_CLASS = None
+    _SCHEMA_INSTANCE = None
+
+    def __init__(self, *args, **kwargs):
         self._errors = None
+        super(ValidateableMixin, self).__init__(*args, **kwargs)
 
     @property
     def errors(self):
-        """Errors dictionary from last validation or None"""
-        if not self._errors:
-            return None
-
-        return dict(self._errors)
+        """Errors dictionary from last validation."""
+        return self._errors
 
     @property
     def is_valid(self):
         """Calls :meth:`validate` and returns validation result."""
-
         self.validate()
         return not self._errors
 
     @property
-    def _schema():
-        """
-        marshmallow Schema used to validate self.
+    def _schema(self):
+        """Instance of marshmallow Schema used to validate self."""
+        if not self.SCHEMA_CLASS:
+            raise NotImplementedError(
+                "SCHEMA_CLASS is not defined. Can't validate {}!".format(
+                    self.__class__.__name__
+                )
+            )
 
-        Note:
-            It is allowed to return None in which case validation will report
-            schema error.
-        """
-        raise NotImplementedError(
-            "class {} is missing implementation of self._schema!".
-            format(self.__class__.__name__)
-        )
+        if not self.__class__._SCHEMA_INSTANCE:
+            if isinstance(self.SCHEMA_CLASS, str):
+                klass = import_string(self.SCHEMA_CLASS)
+            else:
+                klass = self.SCHEMA_CLASS
+            self.__class__._SCHEMA_INSTANCE = klass()
+
+        return self._SCHEMA_INSTANCE
 
     def validate(self):
         """
@@ -47,29 +72,29 @@ class Validateable(object):
             dict: Errors dictionary.
         """
         self._errors = defaultdict(list)
-        schema = self._schema
-        if schema:
-            try:
-                json_str, dump_errors = schema.dumps(self)
-                # Ignoring dump_errors because they don't contain all
-                # validations - this is marshmallows' by-design feature.
-                # Instead, we'll try to load it now and use that as errors dict
-                data, self._errors = schema.loads(json_str)
 
-            except ValidationError as e:
-                for k, v in e.message.items():
-                    self._errors[k] = v
+        json_str = None
+        try:
+            json_str = self._schema.dumps(self)
+        except Exception:
+            # Ignoring dump_errors because they don't contain all validations -
+            # this is marshmallows' by-design feature. Instead, we'll try to
+            # load dumped data and use result of that for errors dict
+            pass
 
-            except Exception as e:
-                self._errors[self.__class__.__name__].append(str(e))
-        else:
-            self._errors['{} schema'.format(self.__class__.__name__)
-                        ].append('Invalid message_type!')
+        try:
+            self._schema.loads(json_str)
+
+        except ValidationError as exception:
+            self._errors = exception.messages
+
+        except Exception as e:
+            self._errors[self.__class__.__name__].append(str(e))
 
         return self._errors
 
 
-class Representable(object):
+class RepresentableMixin(object):
     """
     Mixin provides generic __repr__ implementation for value objects (for
     example: models).
