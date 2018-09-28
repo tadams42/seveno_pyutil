@@ -3,9 +3,10 @@ Backports some of Python 3 things that can't be found in other compatibility
 packages.
 """
 
+
 def py34_min(iterable, key=None, default=None):
     """
-    Implements ``min`` builtin with new ``default`` keyword arument introduced
+    Implements ``min`` builtin with new ``default`` keyword argument introduced
     in Python 3.4
     """
     try:
@@ -13,15 +14,16 @@ def py34_min(iterable, key=None, default=None):
             retv = min(iterable, key=key)
         else:
             retv = min(iterable)
-    except ValueError as e:
+    except ValueError:
         # 'min() arg is an empty sequence'
         retv = default
 
     return retv
 
+
 def py34_max(iterable, key=None, default=None):
     """
-    Implements ``max`` builtin with new ``default`` keyword arument introduced
+    Implements ``max`` builtin with new ``default`` keyword argument introduced
     in Python 3.4
     """
     try:
@@ -29,7 +31,7 @@ def py34_max(iterable, key=None, default=None):
             retv = max(iterable, key=key)
         else:
             retv = max(iterable)
-    except ValueError as e:
+    except ValueError:
         # 'max() arg is an empty sequence'
         retv = default
 

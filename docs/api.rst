@@ -1,7 +1,7 @@
 API reference
 =============
 
-datetime_utilities
+datetime utilities
 ------------------
 
 .. automodule:: seveno_pyutil.datetime_utilities
@@ -9,7 +9,7 @@ datetime_utilities
    :undoc-members:
    :show-inheritance:
 
-benchmarking_utilities
+benchmarking utilities
 ----------------------
 
 .. automodule:: seveno_pyutil.benchmarking_utilities
@@ -17,7 +17,7 @@ benchmarking_utilities
    :undoc-members:
    :show-inheritance:
 
-dict_utilities
+dict utilities
 --------------
 
 .. automodule:: seveno_pyutil.dict_utilities
@@ -26,7 +26,7 @@ dict_utilities
    :show-inheritance:
 
 
-file_utilities
+file utilities
 --------------
 
 .. automodule:: seveno_pyutil.file_utilities
@@ -34,14 +34,14 @@ file_utilities
    :undoc-members:
    :show-inheritance:
 
-logging_utilities
+logging utilities
 -----------------
 
 .. automodule:: seveno_pyutil.logging_utilities
    :members: StandardMetadataFilter, DynamicContextFilter, silence_logger, SQLFilter, log_http_request, log_http_response, log_to_console_for, log_to_tmp_file_for, SingleLineFormatter, SingleLineColoredFormatter
    :show-inheritance:
 
-metaprogramming_helpers
+metaprogramming helpers
 -----------------------
 
 .. automodule:: seveno_pyutil.metaprogramming_helpers
@@ -49,7 +49,7 @@ metaprogramming_helpers
    :undoc-members:
    :show-inheritance:
 
-model_utilities
+model utilities
 ---------------
 
 .. automodule:: seveno_pyutil.model_utilities
@@ -57,7 +57,7 @@ model_utilities
    :undoc-members:
    :show-inheritance:
 
-os_utilities
+os utilities
 ------------
 
 .. automodule:: seveno_pyutil.os_utilities
@@ -65,7 +65,7 @@ os_utilities
    :undoc-members:
    :show-inheritance:
 
-string_utilities
+string utilities
 ----------------
 
 .. automodule:: seveno_pyutil.string_utilities
@@ -73,7 +73,7 @@ string_utilities
    :undoc-members:
    :show-inheritance:
 
-collections_utilities
+collections utilities
 ---------------------
 
 .. automodule:: seveno_pyutil.collections_utilities

@@ -70,6 +70,7 @@ setup(
     install_requires=[
         'pytz',
         'tzlocal',
+        'python-dateutil >= 2.6.0',
         'colorlog',
         'marshmallow',
         'pygments',
