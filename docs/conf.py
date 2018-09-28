@@ -183,3 +183,7 @@ intersphinx_mapping = {
     'marshmallow': ('https://marshmallow.readthedocs.io/en/3.0/', None),
     'json': ('https://simplejson.readthedocs.io/en/latest/', None)
 }
+
+
+
+add_module_names = False
