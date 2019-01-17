@@ -8,4 +8,4 @@ def inverted(dct):
 
         {1: 'a', 2: 'b'}
     """
-    return dict([(v, k) for k, v in dct.items()])
+    return {v: k for k, v in dct.items()}

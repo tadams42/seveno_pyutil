@@ -1,6 +1,4 @@
-from datetime import datetime
-
-import six
+from datetime import date, datetime
 
 try:
     import simplejson as json
@@ -17,7 +15,7 @@ def is_blank(obj):
     if not obj:
         return True
 
-    if isinstance(obj, six.string_types):
+    if isinstance(obj, str):
         return not obj.strip()
 
     retv = False
@@ -32,6 +30,6 @@ def is_blank(obj):
 
 class JSONEncoderWithDateTime(json.JSONEncoder):
     def default(self, o):
-        if isinstance(o, datetime):
+        if isinstance(o, (date, datetime)):
             return o.isoformat()
         return super().default(o)

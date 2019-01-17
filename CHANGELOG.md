@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0 (Unreleased)
+
+- dropped support for Python versions < 3.5
+- fixed small bugs
+- added error_utilities
+- added xml_utilities
+
 ## 0.4.3 (2018-09-26)
 
 * Refactored and improved SQLAlchemy logging capabilities of SQLFilter
