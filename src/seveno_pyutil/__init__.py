@@ -22,7 +22,7 @@ from .logging_utilities import (COLORED_FILELOG_PREFIX,
                                 log_to_tmp_file_for,
                                 log_traceback_multiple_logs,
                                 log_traceback_single_log, silence_logger)
-from .metaprogramming_helpers import (all_subclasses, import_string,
+from .metaprogramming_helpers import (all_subclasses, getval, import_string,
                                       leaf_subclasses)
 from .model_utilities import (IsoTimeField, RepresentableMixin,
                               ValidateableMixin)

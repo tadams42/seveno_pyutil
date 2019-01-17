@@ -59,3 +59,50 @@ def import_string(dotted_path):
             'Module "%s" does not define a "%s" attribute/class' % (
                 module_path, class_name)
         ) from e
+
+
+def getval(src: Union[Mapping, object], attr: object, default=None):
+    """
+    Companion of `dict.get` and `getattr` which ensures default value even when
+    original method would had returned `None`
+
+    Example::
+
+        d1 = {}
+        d2 = {"foo": None}
+        d3 = {"foo": "bar"}
+
+        d1.get("foo", 42)  # => 42
+        d2.get("foo", 42)  # => None
+        d3.get("foo", 42)  # => "bar"
+
+        getval(d1, "foo", 42)  # => 42
+        getval(d2, "foo", 42)  # => 42
+        getval(d3, "foo", 42)  # => "bar"
+
+        # and also
+
+        class Foo:
+            def __init__(self, foo=None):
+                self.foo = foo
+
+        class Bar:
+            pass
+
+        o1 = Bar()
+        o2 = Foo()
+        o3 = Foo("bar")
+
+        getattr(o1, "foo", 42)  # => 42
+        getattr(o2, "foo", 42)  # => None
+        getattr(o3, "foo", 42)  # => "bar"
+
+        getval(o1, "foo", 42)  # => 42
+        getval(o2, "foo", 42)  # => 42
+        getval(o3, "foo", 42)  # => "bar"
+    """
+
+    if isinstance(src, abc.Mapping):
+        return src.get(attr, None) or default
+    else:
+        return getattr(src, attr, None) or default
