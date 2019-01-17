@@ -82,9 +82,17 @@ collections utilities
    :show-inheritance:
 
 error utilities
-----------------------
+---------------
 
 .. automodule:: seveno_pyutil.error_utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xml utilities
+-------------
+
+.. automodule:: seveno_pyutil.xml_utilities
    :members:
    :undoc-members:
    :show-inheritance:

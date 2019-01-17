@@ -4,7 +4,7 @@ import logging
 
 from . import (datetime_utilities, dict_utilities, error_utilities,
                file_utilities, logging_utilities, metaprogramming_helpers,
-               model_utilities, os_utilities, string_utilities)
+               model_utilities, os_utilities, string_utilities, xml_utilities)
 from .benchmarking_utilities import Stopwatch
 from .collections_utilities import in_batches
 from .datetime_utilities import ensure_tzinfo
@@ -29,5 +29,11 @@ from .model_utilities import (IsoTimeField, RepresentableMixin,
                               ValidateableMixin)
 from .os_utilities import current_user, current_user_home
 from .string_utilities import JSONEncoderWithDateTime, is_blank
+from .xml_utilities import (child_attribute_or_none,
+                            child_by_tag_attribute_or_none,
+                            child_by_tag_text_or_none, child_text_or_none,
+                            element_attribute_or_none, element_text_or_none,
+                            filtered_children, xml_to_enum_by_name,
+                            xml_to_enum_by_val)
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
