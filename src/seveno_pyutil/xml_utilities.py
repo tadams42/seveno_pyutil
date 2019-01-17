@@ -67,7 +67,9 @@ def xml_to_enum_by_val(xml_val, enum_):
     )
 
     if xml_val and not converted_value:
-        raise ValueError(f"Invalid value of '{xml_val}' for '{enum_.__name__}'!")
+        raise ValueError("Invalid value of '{}' for '{}'!".format(
+            xml_val, enum_.__name__
+        ))
 
     return converted_value
 
@@ -81,7 +83,11 @@ def xml_to_enum_by_name(xml_val, enum_):
     )
 
     if xml_val and not converted_value:
-        raise ValueError(f"Invalid value of '{xml_val}' for '{enum_.__name__}'!")
+        raise ValueError(
+            "Invalid value of '{}' for '{}'!".format(
+                xml_val, enum_.__name__
+            )
+        )
 
     return converted_value
 
