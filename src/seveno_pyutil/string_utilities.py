@@ -30,6 +30,6 @@ def is_blank(obj):
 
 class JSONEncoderWithDateTime(json.JSONEncoder):
     def default(self, o):
-        if isinstance(o, datetime):
+        if isinstance(o, (date, datetime)):
             return o.isoformat()
         return super().default(o)
