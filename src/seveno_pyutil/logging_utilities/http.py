@@ -49,7 +49,7 @@ def log_http_request(request, colorized=False):
 
     logger.info("Started HTTP request %s: %s", request.method, destination)
 
-    headers = ((k.strip(), v.strip()) for k, v in request.headers)
+    headers = [(k.strip(), v.strip()) for k, v in request.headers]
 
     logger.debug(
         "HTTP request headers: %s", (
@@ -81,7 +81,7 @@ def log_http_response(
         Convert into `logging.Filter`
     """
 
-    headers = ((k.strip(), v.strip()) for k, v in response.headers)
+    headers = [(k.strip(), v.strip()) for k, v in response.headers]
 
     logger.debug(
         "HTTP response headers: %s", (
@@ -106,7 +106,7 @@ def log_http_response(
         logger.info(
             "HTTP response payload: %s", (
                 _colored_json(dict(payload))
-                if colorized else json.dumpsdumps(dict(payload))
+                if colorized else json.dumps(dict(payload))
             ).strip()
         )
 

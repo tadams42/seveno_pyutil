@@ -129,6 +129,20 @@ class DynamicContextFilter(logging.Filter):
         >>> logger_bar.info('Message4')
          Message4
         >>>
+
+    Warning:
+        This filter assumes and provides global logging context per thread. In cases
+        where there are multiple context holders in single thread it won't work. In
+        these cases it is necessary to utilize ordinary local context dict and use
+        standard way of passing it to log records via::
+
+            logger.foo(..., extra=context_dict)
+
+        or via own filter and::
+
+            logger = logging.getLogger(__name__)
+            my_context_dict = {'foo': 'val'}
+            logger = logging.LoggerAdapter(logger, context_dict)
     """
 
     _LOGGING_CONTEXT = threading.local()
