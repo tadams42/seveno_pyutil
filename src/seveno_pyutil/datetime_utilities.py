@@ -2,10 +2,7 @@ import re
 from datetime import datetime, timedelta, tzinfo
 
 import pytz
-import six
-import tzlocal
 from dateutil.tz import tzoffset
-from pytz import AmbiguousTimeError
 
 _ISO_8601_OFFSET = re.compile(r"([+-]?)([0-9]{2})[:]?([0-9]{0,2})")
 
@@ -32,7 +29,7 @@ def timezone_or_offset(from_):
     if from_ is None:
         offset_obj = pytz.utc
 
-    elif isinstance(from_, six.string_types):
+    elif isinstance(from_, str):
         try:
             offset_obj = pytz.timezone(from_)
         except pytz.exceptions.UnknownTimeZoneError:

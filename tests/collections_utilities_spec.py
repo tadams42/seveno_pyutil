@@ -1,5 +1,3 @@
-import pytest
-
 from seveno_pyutil import in_batches
 
 

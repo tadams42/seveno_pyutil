@@ -10,6 +10,7 @@ from __future__ import absolute_import, print_function
 
 import io
 import re
+import sys
 from glob import glob
 from os.path import basename, dirname, join, splitext
 
@@ -51,8 +52,6 @@ setup(
         "Intended Audience :: Developers",
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
@@ -88,11 +87,12 @@ setup(
         ],
         'dev': [
             'pycodestyle',
-            'yapf',
+            'black' if sys.version_info >= (3, 6, 0) else 'yapf',
             'bumpversion',
             'isort',
             'check-manifest',
             'pylint',
+            'flake8',
 
             # IPython stuff
             'ipython',
@@ -104,8 +104,7 @@ setup(
 
             # py.test stuff
             'pytest >= 3.0.0',
-            'colored-traceback',
-            'pytest-sugar',
+            'pytest-spec',
             'pytest-cov',
             'pytest-mock',
 

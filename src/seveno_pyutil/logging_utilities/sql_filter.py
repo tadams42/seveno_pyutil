@@ -7,7 +7,6 @@ import logging
 import timeit
 
 import pygments
-import six
 import sqlparse
 # from pygments.formatters import TerminalTrueColorFormatter
 from pygments.formatters import Terminal256Formatter
@@ -122,7 +121,7 @@ class SQLFilter(logging.Filter):
         from sqlalchemy.engine import Engine
 
         _logger = logger
-        if isinstance(logger, six.string_types):
+        if isinstance(logger, str):
             _logger = logging.getLogger(logger)
 
         @event.listens_for(Engine, "before_cursor_execute")

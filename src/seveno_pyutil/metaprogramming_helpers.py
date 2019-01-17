@@ -1,7 +1,7 @@
 import sys
+from collections import abc
 from importlib import import_module
-
-import six
+from typing import Mapping, Union
 
 
 class LeafSubclassRetriever:
@@ -47,15 +47,15 @@ def import_string(dotted_path):
     """
     try:
         module_path, class_name = dotted_path.rsplit('.', 1)
-    except ValueError:
-        msg = "%s doesn't look like a module path" % dotted_path
-        six.reraise(ImportError, ImportError(msg), sys.exc_info()[2])
+    except ValueError as e:
+        raise ImportError("%s doesn't look like a module path" % dotted_path) from e
 
     module = import_module(module_path)
 
     try:
         return getattr(module, class_name)
-    except AttributeError:
-        msg = 'Module "%s" does not define a "%s" attribute/class' % (
-            module_path, class_name)
-        six.reraise(ImportError, ImportError(msg), sys.exc_info()[2])
+    except AttributeError as e:
+        raise ImportError(
+            'Module "%s" does not define a "%s" attribute/class' % (
+                module_path, class_name)
+        ) from e
