@@ -2,13 +2,14 @@ __version__ = '0.4.3'
 
 import logging
 
-from . import (datetime_utilities, dict_utilities, file_utilities,
-               logging_utilities, metaprogramming_helpers, model_utilities,
-               os_utilities, string_utilities)
+from . import (datetime_utilities, dict_utilities, error_utilities,
+               file_utilities, logging_utilities, metaprogramming_helpers,
+               model_utilities, os_utilities, string_utilities)
 from .benchmarking_utilities import Stopwatch
 from .collections_utilities import in_batches
 from .datetime_utilities import ensure_tzinfo
 from .dict_utilities import inverted
+from .error_utilities import ExceptionsAsErrors, add_error_to
 from .file_utilities import (abspath_if_relative, file_checksum,
                              move_and_create_dest, silent_create_dirs,
                              silent_remove, switch_extension)

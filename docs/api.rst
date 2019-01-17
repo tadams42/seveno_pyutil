@@ -80,3 +80,11 @@ collections utilities
    :members:
    :undoc-members:
    :show-inheritance:
+
+error utilities
+----------------------
+
+.. automodule:: seveno_pyutil.error_utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:
