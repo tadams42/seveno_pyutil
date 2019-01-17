@@ -1,5 +1,4 @@
-from seveno_pyutil.metaprogramming_helpers import (all_subclasses,
-                                                   import_string,
+from seveno_pyutil.metaprogramming_helpers import (all_subclasses, import_string,
                                                    leaf_subclasses)
 
 
