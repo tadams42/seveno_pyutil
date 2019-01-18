@@ -169,6 +169,9 @@ def add_error_to(
 
     else:
         for k, v in data.items():
+            if hasattr(v, "normalized_messages"):
+                v = dict(v.normalized_messages())
+
             if is_blank(v):
                 continue
 
