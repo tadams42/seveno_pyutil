@@ -39,7 +39,6 @@ logging utilities
 
 .. automodule:: seveno_pyutil.logging_utilities
    :members: StandardMetadataFilter, DynamicContextFilter, silence_logger, SQLFilter, log_http_request, log_http_response, log_to_console_for, log_to_tmp_file_for, SingleLineFormatter, SingleLineColoredFormatter
-   :show-inheritance:
 
 metaprogramming helpers
 -----------------------
@@ -71,7 +70,6 @@ string utilities
 .. automodule:: seveno_pyutil.string_utilities
    :members:
    :undoc-members:
-   :show-inheritance:
 
 collections utilities
 ---------------------

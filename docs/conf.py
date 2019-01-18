@@ -174,14 +174,13 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
-
-
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.5', None),
     'marshmallow': ('https://marshmallow.readthedocs.io/en/3.0/', None),
-    'json': ('https://simplejson.readthedocs.io/en/latest/', None)
+    'json': ('https://simplejson.readthedocs.io/en/latest/', None),
+    'simplejson': ('https://simplejson.readthedocs.io/en/latest/', None),
+    'pytz': ('http://pytz.sourceforge.net/', None)
 }
 
 

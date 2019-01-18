@@ -29,6 +29,13 @@ def is_blank(obj):
 
 
 class JSONEncoderWithDateTime(json.JSONEncoder):
+    """
+    JSON encoder that supports date and datetime objects.
+
+    Example:
+
+        json.dumps(obj, cls=JSONEncoderWithDateTime)
+    """
     def default(self, o):
         if isinstance(o, (date, datetime)):
             return o.isoformat()

@@ -6,7 +6,7 @@ def in_batches(iterable, of_size=1):
     Generator that yields generator slices of iterable.
 
     Since it is elegant and working flawlessly, it is shameles C/P from
-    https://stackoverflow.com/a/8998040/2219433
+    https://stackoverflow.com/questions/8991506/iterate-an-iterator-by-chunks-of-n-in-python/8998040#8998040
 
     Warning:
         Each returned batch should be completely consumed before next batch
