@@ -94,8 +94,9 @@ def ensure_tzinfo(val, tz_or_offset='UTC', is_dst=False):
     Raises:
         ValueError: When timezone of offset can't be parsed / determined from
             ``tz_or_offset``
-        pytz.AmbiguousTimeError: When ``is_dst is None`` and localization of tz
-            unaware object would result with ambiguous (regarding to DST) time.
+        ``pytz.exceptions.AmbiguousTimeError``: When ``is_dst is None`` and
+            localization of tz unaware object would result with ambiguous (regarding
+            to DST) time.
 
     Note:
         This tries to provide safe(ish) implementation for handling naive
