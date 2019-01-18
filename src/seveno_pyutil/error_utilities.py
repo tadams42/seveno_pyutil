@@ -43,6 +43,22 @@ class ExceptionsAsErrors:
         return True
 
 
+def _normalize_error_data(error):
+    if isinstance(error, str):
+        return error
+
+    if isinstance(error, (abc.Sequence, abc.Set)):
+        return [_normalize_error_data(obj) for obj in error]
+
+    if isinstance(error, abc.Mapping):
+        return {k: _normalize_error_data(v) for k, v in error.items()}
+
+    if hasattr(error, "normalized_messages"):
+        return _normalize_error_data(error.normalized_messages())
+
+    return str(error)
+
+
 def add_error_to(
     errors_store: Union[Mapping, object],
     error: Union[str, Sequence, object, Mapping, Exception],
@@ -150,80 +166,74 @@ def add_error_to(
         errors_store.errors = getval(errors_store, "errors", dict())
         dest = errors_store.errors
 
-    if hasattr(error, "normalized_messages"):
-        data = dict(error.normalized_messages())
-    elif isinstance(error, (abc.Sequence, abc.Set, abc.Mapping)):
-        data = error
-    else:
-        data = str(error)
+    data = _normalize_error_data(error)
+
     if is_blank(data):
         return dest
 
     if isinstance(data, str):
         dest[_SELF_ERRORS_KEY] = getval(dest, _SELF_ERRORS_KEY, [])
         dest[_SELF_ERRORS_KEY].append(data)
+        return dest
 
-    elif isinstance(data, (abc.Sequence, abc.Set)):
+    if isinstance(data, list):
         dest[_SELF_ERRORS_KEY] = getval(dest, _SELF_ERRORS_KEY, [])
         dest[_SELF_ERRORS_KEY].extend(data)
+        return dest
 
-    else:
-        for k, v in data.items():
-            if hasattr(v, "normalized_messages"):
-                v = dict(v.normalized_messages())
+    for k, v in data.items():
+        if is_blank(v):
+            continue
 
-            if is_blank(v):
-                continue
-
-            if k in dest:
-                if isinstance(dest[k], list):
-                    if isinstance(v, str):
-                        dest[k].append(v)
-
-                    elif isinstance(v, (abc.Sequence, abc.Set)):
-                        dest[k].extend(v)
-
-                    elif isinstance(v, abc.Mapping):
-                        dest[k] = {_SELF_ERRORS_KEY: dest[k]}
-                        add_error_to(dest[k], v)
-
-                    else:
-                        dest[k].append(str(v))
-
-                else:
-                    if isinstance(v, str):
-                        dest[k][_SELF_ERRORS_KEY] = getval(
-                            dest[k], _SELF_ERRORS_KEY, []
-                        )
-                        dest[k][_SELF_ERRORS_KEY].append(v)
-
-                    elif isinstance(v, (abc.Sequence, abc.Set)):
-                        dest[k][_SELF_ERRORS_KEY] = getval(
-                            dest[k], _SELF_ERRORS_KEY, []
-                        )
-                        dest[k][_SELF_ERRORS_KEY].extend(v)
-
-                    elif isinstance(v, abc.Mapping):
-                        add_error_to(dest[k], v)
-
-                    else:
-                        dest[k][_SELF_ERRORS_KEY] = getval(
-                            dest[k], _SELF_ERRORS_KEY, []
-                        )
-                        dest[k][_SELF_ERRORS_KEY].append(str(v))
-
-            else:
+        if k in dest:
+            if isinstance(dest[k], list):
                 if isinstance(v, str):
-                    dest[k] = [v]
+                    dest[k].append(v)
 
-                elif isinstance(v, (abc.Sequence, abc.Set)):
-                    dest[k] = list(v)
+                elif isinstance(v, list):
+                    dest[k].extend(v)
 
-                elif isinstance(v, abc.Mapping):
-                    dest[k] = dict()
+                elif isinstance(v, dict):
+                    dest[k] = {_SELF_ERRORS_KEY: dest[k]}
                     add_error_to(dest[k], v)
 
                 else:
-                    dest[k] = [str(v)]
+                    dest[k].append(str(v))
+
+            else:
+                if isinstance(v, str):
+                    dest[k][_SELF_ERRORS_KEY] = getval(
+                        dest[k], _SELF_ERRORS_KEY, []
+                    )
+                    dest[k][_SELF_ERRORS_KEY].append(v)
+
+                elif isinstance(v, list):
+                    dest[k][_SELF_ERRORS_KEY] = getval(
+                        dest[k], _SELF_ERRORS_KEY, []
+                    )
+                    dest[k][_SELF_ERRORS_KEY].extend(v)
+
+                elif isinstance(v, dict):
+                    add_error_to(dest[k], v)
+
+                else:
+                    dest[k][_SELF_ERRORS_KEY] = getval(
+                        dest[k], _SELF_ERRORS_KEY, []
+                    )
+                    dest[k][_SELF_ERRORS_KEY].append(str(v))
+
+        else:
+            if isinstance(v, str):
+                dest[k] = [v]
+
+            elif isinstance(v, list):
+                dest[k] = v
+
+            elif isinstance(v, dict):
+                dest[k] = dict()
+                add_error_to(dest[k], v)
+
+            else:
+                dest[k] = [str(v)]
 
     return dest
