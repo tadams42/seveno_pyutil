@@ -2,7 +2,7 @@ language: python
 sudo: false
 cache: pip
 os: linux
-dist: trusty
+dist: xenial
 env:
   global:
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
@@ -26,7 +26,10 @@ matrix:
     - python: '3.6'
       env:
         - TOXENV=3.6
-    - python: pypy3.5-5.8.0
+    - python: '3.7'
+      env:
+        - TOXENV=3.7
+    - python: pypy3.5-6.0
       env:
         - TOXENV=pypy3
 install:
