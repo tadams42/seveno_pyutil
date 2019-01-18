@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1 (2019-01-18)
+
+- small fixes
+
 ## 0.5.0 (2019-01-17)
 
 - dropped support for Python versions < 3.5
