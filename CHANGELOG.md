@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.2 (2019-01-18)
+
+- removed xml_utilities
+- removed model_utilities
+
 ## 0.5.1 (2019-01-18)
 
 - small fixes
