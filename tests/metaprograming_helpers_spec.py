@@ -19,18 +19,14 @@ class Child(DirectChild1):
 
 
 def test_leaf_subclasses_returns_correct_data():
-    assert set(leaf_subclasses(Base)) == set([
-        DirectChild2, Child
-    ])
+    assert set(leaf_subclasses(Base)) == set([DirectChild2, Child])
 
 
 def test_all_subclasses_returns_correct_data():
-    assert all_subclasses(Base) == set([
-        DirectChild1, DirectChild2, Child
-    ])
+    assert all_subclasses(Base) == set([DirectChild1, DirectChild2, Child])
 
 
 def test_import_string_imports_class_from_string():
-    klass = import_string('seveno_pyutil.model_utilities.IsoTimeField')
-    assert klass.__name__ == 'IsoTimeField'
-    assert klass.__module__ == 'seveno_pyutil.model_utilities'
+    klass = import_string("seveno_pyutil.benchmarking_utilities.Stopwatch")
+    assert klass.__name__ == "Stopwatch"
+    assert klass.__module__ == "seveno_pyutil.benchmarking_utilities"
