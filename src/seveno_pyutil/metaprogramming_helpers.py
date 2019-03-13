@@ -82,6 +82,10 @@ def getval(src: Union[Mapping, object], attr: object, default=None):
 
         # and also
 
+        getval({"a": ""}, "a", None) is None  # => True
+
+        # and with objects other than dicts
+
         class Foo:
             def __init__(self, foo=None):
                 self.foo = foo

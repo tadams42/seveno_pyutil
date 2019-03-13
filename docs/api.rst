@@ -48,14 +48,6 @@ metaprogramming helpers
    :undoc-members:
    :show-inheritance:
 
-model utilities
----------------
-
-.. automodule:: seveno_pyutil.model_utilities
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 os utilities
 ------------
 
@@ -83,14 +75,6 @@ error utilities
 ---------------
 
 .. automodule:: seveno_pyutil.error_utilities
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-xml utilities
--------------
-
-.. automodule:: seveno_pyutil.xml_utilities
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import AnyStr, Iterable, Union
 
 try:
     import simplejson as json
@@ -6,7 +7,7 @@ except Exception:
     import json
 
 
-def is_blank(obj):
+def is_blank(obj: Union[AnyStr, Iterable, None]):
     """
     True if line is empty string, None, string that contains only spaces and
     space like characters, or line is iterable that contains only these kinds
@@ -15,7 +16,7 @@ def is_blank(obj):
     if not obj:
         return True
 
-    if isinstance(obj, str):
+    if isinstance(obj, (str, bytes)):
         return not obj.strip()
 
     retv = False
@@ -26,17 +27,3 @@ def is_blank(obj):
         retv = False
 
     return retv
-
-
-class JSONEncoderWithDateTime(json.JSONEncoder):
-    """
-    JSON encoder that supports date and datetime objects.
-
-    Example:
-
-        json.dumps(obj, cls=JSONEncoderWithDateTime)
-    """
-    def default(self, o):
-        if isinstance(o, (date, datetime)):
-            return o.isoformat()
-        return super().default(o)
