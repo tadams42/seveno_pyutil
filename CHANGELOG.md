@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.5.2 (2019-01-18)
+## 0.5.3 (2019-04-01)
+
+- fixes bug in http logging utilities
+
+## 0.5.2 (2019-03-13)
 
 - removed xml_utilities
 - removed model_utilities
