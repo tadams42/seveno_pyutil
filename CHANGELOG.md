@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.4 (2019-05-16)
+
+- Removed HTTP logging helpers and DynamicContextFilter
+- SQLAlchemy logger can now optionally collect statistics
+
 ## 0.5.3 (2019-04-01)
 
 - fixes bug in http logging utilities
