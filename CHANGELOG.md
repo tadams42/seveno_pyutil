@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.5 (2019-05-20)
+
+- minor fixes
+
 ## 0.5.4 (2019-05-16)
 
 - Removed HTTP logging helpers and DynamicContextFilter
