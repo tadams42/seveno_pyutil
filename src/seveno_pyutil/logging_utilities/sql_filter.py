@@ -240,7 +240,10 @@ class SQLFilter(logging.Filter):
                 extra={
                     "sql_statement": exception_context.statement,
                     "sql_parameters": exception_context.parameters,
-                    "sql_duration_ms": duration_ms(conn).total_seconds() * 1000,
+                    "sql_duration_ms": duration_ms(
+                        exception_context.connection
+                    ).total_seconds()
+                    * 1000,
                 },
             )
 
