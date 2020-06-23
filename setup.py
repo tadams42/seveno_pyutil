@@ -25,7 +25,7 @@ def read(*names, **kwargs):
 
 setup(
     name="seveno_pyutil",
-    version="0.5.5",
+    version="0.5.6",
     license="MIT",
     description="Various unsorted Python utilities",
     long_description="%s\n%s"
@@ -55,8 +55,9 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Operating System :: OS Independent",
@@ -84,12 +85,13 @@ setup(
         "docs": ["sphinx >= 1.4", "sphinx_rtd_theme", "m2r >= 0.1.14"],
         "dev": [
             "pycodestyle",
-            "black" if sys.version_info >= (3, 6, 0) else "yapf",
+            "black",
             "bumpversion",
             "isort",
             "check-manifest",
             "pylint",
             "flake8",
+            "mypy",
             # IPython stuff
             "ipython",
             # Docs and viewers

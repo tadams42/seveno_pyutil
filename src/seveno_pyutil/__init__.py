@@ -1,11 +1,10 @@
-__version__ = "0.5.5"
+__version__ = "0.5.6"
 
 import logging
 
 from .benchmarking_utilities import Stopwatch
 from .collections_utilities import in_batches
 from .datetime_utilities import ensure_tzinfo
-from .dict_utilities import inverted
 from .error_utilities import ExceptionsAsErrors, add_error_to
 from .file_utilities import (
     abspath_if_relative,

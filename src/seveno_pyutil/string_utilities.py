@@ -7,7 +7,7 @@ except Exception:
     import json
 
 
-def is_blank(obj: Union[AnyStr, Iterable, None]):
+def is_blank(obj: Union[AnyStr, Iterable, None]) -> bool:
     """
     True if line is empty string, None, string that contains only spaces and
     space like characters, or line is iterable that contains only these kinds

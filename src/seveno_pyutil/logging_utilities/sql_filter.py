@@ -203,11 +203,12 @@ class SQLFilter(logging.Filter):
                 and statement_duration >= duration_threshold_ms
             ):
                 _logger.warning(
-                    "Detected SQL query running longer than {:.3f} ms! ".format(
+                    "Detected SQL query running longer than {:.2f} ms! ".format(
                         duration_threshold_ms.total_seconds() * 1000
                     ),
                     extra={
-                        "sql_statement": statement,
+                        # rsyslogd limits to 2048 bytes per message by default
+                        "sql_statement": statement[:1536],
                         "sql_parameters": parameters,
                         "sql_duration_ms": statement_duration.total_seconds() * 1000,
                     },
@@ -307,7 +308,7 @@ class SQLFilter(logging.Filter):
         )
 
         if duration:
-            record.sql_duration = "{:.3f} ms".format(duration)
+            record.sql_duration = "{:.2f} ms".format(duration)
         else:
             record.sql_duration = "_.___ ms"
 
