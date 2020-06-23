@@ -91,6 +91,7 @@ setup(
             "check-manifest",
             "pylint",
             "flake8",
+            "mypy",
             # IPython stuff
             "ipython",
             # Docs and viewers
