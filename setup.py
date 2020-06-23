@@ -41,7 +41,7 @@ setup(
         "",
     ),
     # In the future this will correctly render Markdown on PyPi:
-    # long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     author="Tomislav Adamic",
     author_email="tomislav.adamic@gmail.com",
     url="https://github.com/tadams42/seveno_pyutil",
@@ -82,7 +82,7 @@ setup(
     # for example:
     # $ pip install -e .[dev]
     extras_require={
-        "docs": ["sphinx >= 1.4", "sphinx_rtd_theme", "m2r >= 0.1.14"],
+        "docs": ["sphinx >= 3.0.0", "sphinx_rtd_theme", "m2r >= 0.1.14"],
         "dev": [
             "pycodestyle",
             "black",
@@ -95,7 +95,7 @@ setup(
             # IPython stuff
             "ipython",
             # Docs and viewers
-            "sphinx<2.0.0",
+            "sphinx>=3.0.0",
             "sphinx_rtd_theme",
             "m2r",
             # py.test stuff
