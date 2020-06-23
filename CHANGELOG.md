@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.6 (2019-06-23)
+
+- fix: SQL logging could sometimes generate messages that are too long for  rsyslog
+- dropped support for Python 3.5
+- Added support for Python 3.8
+
 ## 0.5.5 (2019-05-20)
 
 - minor fixes
