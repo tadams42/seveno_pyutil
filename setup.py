@@ -86,7 +86,7 @@ setup(
         "dev": [
             "pycodestyle",
             "black",
-            "bumpversion",
+            "bump2version",
             "isort",
             "check-manifest",
             "pylint",
