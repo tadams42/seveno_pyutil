@@ -198,6 +198,7 @@ class SQLFilter(logging.Filter):
         ):
             statement_duration = duration_ms(conn)
 
+            warned = False
             if (
                 duration_threshold_ms is not None
                 and statement_duration >= duration_threshold_ms
@@ -213,11 +214,13 @@ class SQLFilter(logging.Filter):
                         "sql_duration_ms": statement_duration.total_seconds() * 1000,
                     },
                 )
-            elif duration_threshold_ms is None:
+                warned = True
+
+            if not warned and statement_duration is not None:
                 _logger.debug(
                     "",
                     extra={
-                        "sql_statement": statement,
+                        "sql_statement": statement[:2000],
                         "sql_parameters": parameters,
                         "sql_duration_ms": statement_duration.total_seconds() * 1000,
                     },

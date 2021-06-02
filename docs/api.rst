@@ -17,14 +17,6 @@ benchmarking utilities
    :undoc-members:
    :show-inheritance:
 
-dict utilities
---------------
-
-.. automodule:: seveno_pyutil.dict_utilities
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 file utilities
 --------------

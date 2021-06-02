@@ -25,7 +25,7 @@ def read(*names, **kwargs):
 
 setup(
     name="seveno_pyutil",
-    version="0.5.6",
+    version="0.5.7",
     license="MIT",
     description="Various unsorted Python utilities",
     long_description="%s\n%s"
@@ -41,7 +41,7 @@ setup(
         "",
     ),
     # In the future this will correctly render Markdown on PyPi:
-    # long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     author="Tomislav Adamic",
     author_email="tomislav.adamic@gmail.com",
     url="https://github.com/tadams42/seveno_pyutil",
@@ -55,7 +55,6 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: Implementation :: CPython",
@@ -82,11 +81,11 @@ setup(
     # for example:
     # $ pip install -e .[dev]
     extras_require={
-        "docs": ["sphinx >= 1.4", "sphinx_rtd_theme", "m2r >= 0.1.14"],
+        "docs": ["sphinx >= 3.0.0", "sphinx_rtd_theme", "m2r >= 0.1.14"],
         "dev": [
             "pycodestyle",
             "black",
-            "bumpversion",
+            "bump2version",
             "isort",
             "check-manifest",
             "pylint",
@@ -95,7 +94,7 @@ setup(
             # IPython stuff
             "ipython",
             # Docs and viewers
-            "sphinx<2.0.0",
+            "sphinx>=3.0.0",
             "sphinx_rtd_theme",
             "m2r",
             # py.test stuff
