@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.7 (2020-06-01)
+## 0.5.7 (2020-06-02)
 
 - fix: SQLFilter was not logging debug level messages (SQL queries)
 
