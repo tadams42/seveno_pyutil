@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.5.7 (2020-06-01)
+
+- fix: SQLFilter was not logging debug level messages (SQL queries)
+
 ## 0.5.6 (2019-06-23)
 
-- fix: SQL logging could sometimes generate messages that are too long for  rsyslog
+- fix: SQL logging could sometimes generate messages that are too long for rsyslog
 - dropped support for Python 3.5
 - Added support for Python 3.8
 

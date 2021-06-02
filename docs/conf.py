@@ -20,32 +20,6 @@ from datetime import datetime
 import sphinx
 
 
-def monkeypatch(cls):
-    """ decorator to monkey-patch methods """
-
-    def decorator(f):
-        method = f.__name__
-        old_method = getattr(cls, method)
-        setattr(
-            cls,
-            method,
-            lambda self, *args, **kwargs: f(old_method, self, *args, **kwargs),
-        )
-
-    return decorator
-
-
-# https://github.com/miyakogi/m2r/issues/51
-# workaround until https://github.com/miyakogi/m2r/pull/55 is merged
-@monkeypatch(sphinx.registry.SphinxComponentRegistry)
-def add_source_parser(_old_add_source_parser, self, *args, **kwargs):
-    # signature is (parser: Type[Parser], **kwargs), but m2r expects
-    # the removed (str, parser: Type[Parser], **kwargs).
-    if isinstance(args[0], str):
-        args = args[1:]
-    return _old_add_source_parser(self, *args, **kwargs)
-
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -74,7 +48,6 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.todo",
-    "m2r",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -82,7 +55,7 @@ templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
-source_suffix = [".rst", ".md"]
+source_suffix = [".rst"]
 
 # The master toctree document.
 master_doc = "index"

@@ -10,7 +10,6 @@ Tables of contents and indices
    examples_and_usage
    api
    license
-   changelog
 
 Indices and tables
 ==================
