@@ -25,7 +25,7 @@ class StandardMetadataFilter(logging.Filter):
     try:
         _HOSTNAME = socket.gethostname()
     except Exception as exception:
-        _HOSTNAME = '-'
+        _HOSTNAME = "-"
 
     _LOCAL_TZ = tzlocal.get_localzone()
 
@@ -35,7 +35,11 @@ class StandardMetadataFilter(logging.Filter):
         #   '2017-05-22T13:51:49.336335'
         # but we don't have this problem because we make sure that here we
         # always have tzinfo on datetime object
-        dt = self._LOCAL_TZ.localize(datetime.fromtimestamp(record.created))
+        try:
+            dt = self._LOCAL_TZ.localize(datetime.fromtimestamp(record.created))
+        except AttributeError:
+            dt = datetime.fromtimestamp(record.created).replace(tzinfo=self._LOCAL_TZ)
+
         record.isotime = dt.isoformat()
         record.isotime_utc = dt.astimezone(pytz.utc).isoformat()
 
