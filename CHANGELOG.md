@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.8 (2021-08-31)
+
+- fix: `tzlocal` timezone object doesn't always have `localize()`
+
 ## 0.5.7 (2020-06-02)
 
 - fix: SQLFilter was not logging debug level messages (SQL queries)
