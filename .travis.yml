@@ -1,35 +1,13 @@
+dist: xenial
 language: python
-sudo: false
-cache: pip
-os: linux
-dist: bionic
-env:
-  global:
-    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
-    - SEGFAULT_SIGNALS=all
-    - secure: "ZrNE3U+nGdzWCQdrtBUL/sAwjD0wziMaaZNdVSqjppumSjiz1F7WnBuQZfr01C/NAq70MO+mpAD1ypchmothRvmn60ULrzpAgaQP/aRZP7HVDkx6N5CuI3eaDO4iK1SkdSv1rgFwLhmZYFTFNmpsTcSXdYA/oiFbWdbsZ/7msLPqU4eyisrj6OPj3yGbepVoNahIFrIDimCBwgm5gfMgFyb4gGfV5GHaRU3KFQjUrV61IMRIAo4xaPxqLJY36M968VWHhpHBo568SWsQkiJZ0kNqikrSe8VNlt27ATQQjcbx6Bx+MSGGzjnWVaGiSfdCn+cKvDaBcM3yQBZf5KmmE4+tAVyQMmL6j7oNEhddcCpYi59l3vme7xRzLiVI1to94yopSEktZWKg3/yAatKTWz88Hk2WXh0NxmsyhB22DtC/iFCYWKq1iQLZ5Pu3VqcQT0s1rvdOdD7ycQ/Xbpil/9HmAgGrplDnQcc45mmlBPmPUSIoP+i6O/rWauGSMxTGDciCjiXS1P4v+gYrY65jn8JzSRb7CVM07cKl9jlRPDggz+ivr7XSf2XfX6KfuXNOobjuERNNVkdQGROjWvNQQTChrizwzR0NFh+tz17ejC1IASFf+E4IJLeMA9xqsJr9nLDWSOo8zAskYnjc9hB5rMtr2l8cMzKL7gwUCOK2cu8="
-    - secure: "kVSirV7A8Qm0dJ3h8M6f5o4MjZXZ4iZTUI11iulnuZ3fMRepTNlJfbaO8qeT7S21jYxC7jTn5WSXXskseW2xkA9YF9Eg352NMKQtF8YOV/5UMl/RrZ/IjpMjpi8cFeP2KazDS6tbkZAgsTTNMNy9Z6nCLg5IunEZsuJPpzgyDdLMwdnvPTJS1l4RD5adBk2fAdpGoUPU6TlHlbtVHCAmHU0ZXzhOtoWkimwDNhGnZ2Gt8z9oAf0ZuIkbs3+fHNCYIoy+gkXH3UXHH6dKMZnsQ0ZEP3DYwzpJjAeNnQ3xBqP93H6DpjWTubiI0YNJvHgs+f6TSHwdOGsNBQ04ITFl2tbP9vo7HlYisJcrYJrM19UBshmLBhsRBP7wSERMVPLJfeZtwWbQ2WwaEG5p082ZjP8RxIoUOVpyw8PFDCmFqWkDRecH4QRjGC/6Q9YUEXFmqtIfPowUGnApaV9UxB9WIgzob74/FZRtNCY9aqNzE4JNMb5RKt5UFPMxFPwXV+HV3DPSV2VqHm7CDHJJzU8/igx+lLr076kqPHGw8O2d0q6C7IRzPgRgArR5Y2+YgL6PbPVH0xuDUk8POKabpjJ9DyYzcqN2KYtbVU0KCaGUjSfm5L1ZYoEe3gRGCrmhuk+BMW9vnrbhNs5dDLbZiOiTS17we21CnbkbAhuJQ0FMlbs="
-matrix:
-  include:
-    - python: '3.7'
-      env:
-        - TOXENV=check
-    - python: '3.7'
-      env:
-        - TOXENV=docs
-    - python: '3.7'
-      env:
-        - TOXENV=codacy
-    - python: '3.7'
-      env:
-        - TOXENV=3.7
-    - python: '3.8'
-      env:
-        - TOXENV=3.8
-    - python: pypy3
-      env:
-        - TOXENV=pypy3
-install:
-  - pip install tox-travis
+python:
+  - '3.9'
+  # - 'pypy3'
 script:
-  - tox
+  - pip install .[dev]
+  - coverage run --source seveno_pyutil -m pytest -v
+branches:
+  only:
+    - development
+    - master
+    - "/^feature.*$/"
