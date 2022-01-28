@@ -15,7 +15,18 @@ norecursedirs = [".git", "tmp*", ".hg", ".venv", ".tox", ".eggs"]
 # https://github.com/pytest-dev/pytest/issues/2042
 # Untill there is a better way to run doctests over installed package code
 # we disable them
-addopts = "-rxEfsw --strict --tb=short --doctest-modules --doctest-glob=*.rst --doctest-glob=*.py --ignore=bin --ignore=build --ignore=docs/conf.py --ignore=src"
+addopts = [
+	"-rxEfsw",
+	"--strict-markers",
+	"--tb=short",
+	"--doctest-modules",
+	"--doctest-glob=*.rst",
+	"--doctest-glob=*.py",
+	"--ignore=bin",
+	"--ignore=build",
+	"--ignore=docs/conf.py",
+	"--ignore=src",
+]
 python_classes = ["Describe*", "When_*", "describe_*"]
 python_functions = ["it_*", "test_*", "then_*", "when_*"]
 python_files = ["test_*", "*_spec.py", "*_test.py"]
@@ -25,9 +36,7 @@ spec_header_format = "{test_case}"
 source = ["src"]
 
 [tool.coverage.run]
-branch = true
 source = ["src", "tests"]
-parallel = true
 
 [tool.coverage.report]
 show_missing = true

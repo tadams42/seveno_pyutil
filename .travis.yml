@@ -1,11 +1,47 @@
-dist: xenial
-language: python
-python:
-  - '3.9'
-  # - 'pypy3'
-script:
-  - pip install .[dev]
-  - coverage run --source seveno_pyutil -m pytest -v
+dist: focal
+
+env:
+  global:
+    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+    - SEGFAULT_SIGNALS=all
+    # CODACY_PROJECT_TOKEN
+    - secure: "QPm5nCqiXma+oXowyt2ocBPWLAUjEC8Cq+Z8apBXYhOvk+s3MVgAf0imofT4TOdYPt3Q3M2Oym0CvE1vRnReN+rNJLOO83ng9Tl6PdSDM3wsQhPzdl3ca1vJQ6+VhHXEnFzyOxHX7IGf+Pf+OvkB9UF36xKAPxGpbOEq+zP9SO2Ry5JguO+LxBU3qi+Xr1kusu+5n2qJ7j2FAg9+Ml7tA8FJyW3hxEfpNGQ0xrbBvxCmedVKVt1l05+NmHyTs3vT5qcdTcPuT8K6f2oRjK+RnOXF5H/FRVMWm8OQ+lek/Ss70xEVv9FeBBcbXSRMGilgdgOAXQds7+EVTJUHiaismjyzPKlCh0+DGBKIs09aTTGMDYa+JqWo8hjcKr3yGoG8JZlT9gYSn5tr6FRi98Iyc3qMhTdJBiAFZmIxaV2C6PHYYoINuSayIPNmozWjQFl8q+s5wVmI2daQRkR1XNKwODLFhBC14GegLmQX5o5HfLF0g7xxU7KDXmeptkyhf2W4m3ecP+rA79agq35dhpfmiBWBC2z4mPBF8mzJmKDzAIHxMLBf52+LCMM+IMyNf9V6Q7rnn5LIxE5MY2xuKUYddEHJLUQxJVZpYi5+VXiZIdIhhAQIsd8rOhHnDu2THAxp6TIIMbYUB1XRc/7oNcr2kTsTtgA5RjIl8fSmr3/74NE="
+
+jobs:
+  include:
+    - name: "tests and coverage"
+      language: python
+      python: 3.9
+      before_script:
+        - bash <(curl -Ls https://coverage.codacy.com/get.sh) download
+        - pip install .[tests]
+      script:
+        - coverage run --source seveno_pyutil -m pytest -v
+      after_success:
+        - coverage xml
+        - curl -Os https://uploader.codecov.io/latest/linux/codecov
+        - chmod +x codecov
+        - ./codecov
+        - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
+
+    - name: "docs build test"
+      language: python
+      python: 3.9
+      before_script:
+        - pip install .[docs]
+      script:
+        - sphinx-build -E -b html docs dist/docs
+
+    - name: "packaging checks"
+      language: python
+      python: 3.9
+      before_script:
+        - pip install .[tests]
+      script:
+        - python setup.py check --strict --metadata
+        - check-manifest
+        # - isort --check-only --dif
+
 branches:
   only:
     - development
