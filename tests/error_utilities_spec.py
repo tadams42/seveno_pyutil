@@ -7,12 +7,12 @@ class DescribeExceptionsAsErrors:
 
         with ExceptionsAsErrors(errors) as e:
             raise RuntimeError("ZOMG!")
-        errors == {'_schema': ['ZOMG!']}
+        errors == {"_schema": ["ZOMG!"]}
 
         errors = {}
         with ExceptionsAsErrors(errors, subkey="some_name") as e:
             raise RuntimeError("ZOMG!")
-        errors == {'some_name': ['ZOMG!']}
+        errors == {"some_name": ["ZOMG!"]}
 
     def it_handles_example_cases(self):
         errors = {

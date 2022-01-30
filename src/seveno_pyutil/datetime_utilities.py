@@ -36,23 +36,22 @@ def timezone_or_offset(from_):
             pass
 
         if not offset_obj:
-            if from_.strip() in ['Z', '']:
+            if from_.strip() in ["Z", ""]:
                 offset_obj = pytz.utc
             else:
                 match_object = _ISO_8601_OFFSET.match(from_)
                 if match_object:
                     sign, hours, minutes = match_object.groups()
                     offset_obj = tzoffset(
-                        name=from_, offset=timedelta(
-                            hours=(-1 if sign == '-' else 1) * int(hours),
-                            minutes=int(minutes or 0)
-                        )
+                        name=from_,
+                        offset=timedelta(
+                            hours=(-1 if sign == "-" else 1) * int(hours),
+                            minutes=int(minutes or 0),
+                        ),
                     )
 
     elif isinstance(from_, timedelta):
-        offset_obj = tzoffset(
-            name="{} s".format(from_.total_seconds()), offset=from_
-        )
+        offset_obj = tzoffset(name="{} s".format(from_.total_seconds()), offset=from_)
 
     elif isinstance(from_, int):
         offset_obj = tzoffset(
@@ -61,17 +60,17 @@ def timezone_or_offset(from_):
 
     elif issubclass(type(from_), tzinfo) or all(
         hasattr(from_, attr_name)
-        for attr_name in ['dst', 'fromutc', 'tzname', 'utcoffset']
+        for attr_name in ["dst", "fromutc", "tzname", "utcoffset"]
     ):
         offset_obj = from_
 
     if offset_obj is None:
-        raise ValueError('Unable to parse time offset: {}'.format(from_))
+        raise ValueError("Unable to parse time offset: {}".format(from_))
 
     return offset_obj
 
 
-def ensure_tzinfo(val, tz_or_offset='UTC', is_dst=False):
+def ensure_tzinfo(val, tz_or_offset="UTC", is_dst=False):
     """
     Creates timezone aware datetime object for ``val``.
 
@@ -113,7 +112,7 @@ def ensure_tzinfo(val, tz_or_offset='UTC', is_dst=False):
     tz_or_offset = timezone_or_offset(tz_or_offset)
 
     if not val.tzinfo:
-        if hasattr(tz_or_offset, 'localize'):
+        if hasattr(tz_or_offset, "localize"):
             # pytz recommended way for creating timezone aware objects ...
             val = tz_or_offset.localize(val, is_dst=is_dst)
         else:

@@ -12,6 +12,7 @@ class Stopwatch(object):
         ...    time.sleep(1)
         >>> assert stopwatch.duration_ms >= 1000
     """
+
     def __init__(self):
         self.start = 0
         self.end = 0
