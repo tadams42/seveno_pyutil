@@ -188,7 +188,6 @@ intersphinx_mapping = {
     "marshmallow": ("https://marshmallow.readthedocs.io/en/3.0/", None),
     "json": ("https://simplejson.readthedocs.io/en/latest/", None),
     "simplejson": ("https://simplejson.readthedocs.io/en/latest/", None),
-    "pytz": ("http://pytz.sourceforge.net/", None),
 }
 
 

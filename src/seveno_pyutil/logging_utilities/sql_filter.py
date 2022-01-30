@@ -256,7 +256,7 @@ class SQLFilter(logging.Filter):
     ):
         self.colorize_queries = colorize_queries
         self.multiline_queries = multiline_queries
-        super(SQLFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def filter(self, record):
         sql = (
