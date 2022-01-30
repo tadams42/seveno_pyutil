@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 (2021-01-30)
+
+- dropped support for Python < 3.9
+- replaced pytz with stdlib zoneinfo
+- switched to pyproject.toml
+
 ## 0.5.8 (2021-08-31)
 
 - fix: `tzlocal` timezone object doesn't always have `localize()`
