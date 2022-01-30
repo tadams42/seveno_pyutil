@@ -23,13 +23,9 @@ def silent_create_dirs(dir_path):
         os.makedirs(os.path.abspath(dir_path))
     except OSError as exception:
         # We don't care if dir already exists
-        if (
-            exception.errno != errno.EEXIST
-            or (
-                exception.errno == errno.EEXIST and not os.path.isdir(
-                    os.path.abspath(dir_path)
-                )
-            )
+        if exception.errno != errno.EEXIST or (
+            exception.errno == errno.EEXIST
+            and not os.path.isdir(os.path.abspath(dir_path))
         ):
             raise
 
@@ -46,9 +42,7 @@ def abspath_if_relative(relative_path, relative_to):
     if not is_blank(relative_path):
         if not is_blank(relative_to):
             if not os.path.isabs(relative_path):
-                retv = os.path.abspath(
-                    os.path.join(relative_to, relative_path)
-                )
+                retv = os.path.abspath(os.path.join(relative_to, relative_path))
         else:
             retv = os.path.abspath(relative_path)
 
@@ -77,7 +71,7 @@ def silent_remove(file_or_dir_path):
         return None
 
     try:
-        if (os.path.isdir(file_or_dir_path)):
+        if os.path.isdir(file_or_dir_path):
             shutil.rmtree(file_or_dir_path)
         else:
             os.remove(file_or_dir_path)
@@ -91,12 +85,10 @@ def switch_extension(file_path, new_extension):
     if is_blank(new_extension):
         return file_path
 
-    if not new_extension.startswith('.'):
-        new_extension = '.' + new_extension
+    if not new_extension.startswith("."):
+        new_extension = "." + new_extension
 
     return os.path.join(
         os.path.dirname(file_path),
-        os.path.splitext(
-            os.path.basename(file_path)
-        )[0] + new_extension
+        os.path.splitext(os.path.basename(file_path))[0] + new_extension,
     )

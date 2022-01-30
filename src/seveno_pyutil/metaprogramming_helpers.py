@@ -16,7 +16,7 @@ class LeafSubclassRetriever:
         direct_subclasses = self.base_class.__subclasses__()
         leaf_subclasses = list()
         for klass in direct_subclasses:
-            if (len(klass.__subclasses__()) > 0):
+            if len(klass.__subclasses__()) > 0:
                 leaf_subclasses += LeafSubclassRetriever(klass).value()
             else:
                 leaf_subclasses.append(klass)
@@ -46,7 +46,7 @@ def import_string(dotted_path):
     the last name in the path. Raise ImportError if the import failed.
     """
     try:
-        module_path, class_name = dotted_path.rsplit('.', 1)
+        module_path, class_name = dotted_path.rsplit(".", 1)
     except ValueError as e:
         raise ImportError("%s doesn't look like a module path" % dotted_path) from e
 
@@ -56,8 +56,8 @@ def import_string(dotted_path):
         return getattr(module, class_name)
     except AttributeError as e:
         raise ImportError(
-            'Module "%s" does not define a "%s" attribute/class' % (
-                module_path, class_name)
+            'Module "%s" does not define a "%s" attribute/class'
+            % (module_path, class_name)
         ) from e
 
 

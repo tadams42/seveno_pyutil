@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timedelta, tzinfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-import pytz
 from dateutil.tz import tzoffset
 
 _ISO_8601_OFFSET = re.compile(r"([+-]?)([0-9]{2})[:]?([0-9]{0,2})")
@@ -19,40 +19,35 @@ def timezone_or_offset(from_):
     - `int` (ie. -9000) which is total number of seconds in time offset
     - `datetime.timedelta`
     - `datetime.tzinfo` or something that behaves like it
-
-    Todo:
-        In Python 3.7 there is finally datetime.timezone that behaves same as
-        dateutil.tz.tzoffset so we should eventually use that.
     """
     offset_obj = None
 
     if from_ is None:
-        offset_obj = pytz.utc
+        offset_obj = ZoneInfo("UTC")
 
     elif isinstance(from_, str):
         try:
-            offset_obj = pytz.timezone(from_)
-        except pytz.exceptions.UnknownTimeZoneError:
+            offset_obj = ZoneInfo(from_)
+        except (ZoneInfoNotFoundError, ValueError):
             pass
 
         if not offset_obj:
-            if from_.strip() in ['Z', '']:
-                offset_obj = pytz.utc
+            if from_.strip() in ["Z", ""]:
+                offset_obj = ZoneInfo("UTC")
             else:
                 match_object = _ISO_8601_OFFSET.match(from_)
                 if match_object:
                     sign, hours, minutes = match_object.groups()
                     offset_obj = tzoffset(
-                        name=from_, offset=timedelta(
-                            hours=(-1 if sign == '-' else 1) * int(hours),
-                            minutes=int(minutes or 0)
-                        )
+                        name=from_,
+                        offset=timedelta(
+                            hours=(-1 if sign == "-" else 1) * int(hours),
+                            minutes=int(minutes or 0),
+                        ),
                     )
 
     elif isinstance(from_, timedelta):
-        offset_obj = tzoffset(
-            name="{} s".format(from_.total_seconds()), offset=from_
-        )
+        offset_obj = tzoffset(name="{} s".format(from_.total_seconds()), offset=from_)
 
     elif isinstance(from_, int):
         offset_obj = tzoffset(
@@ -61,17 +56,17 @@ def timezone_or_offset(from_):
 
     elif issubclass(type(from_), tzinfo) or all(
         hasattr(from_, attr_name)
-        for attr_name in ['dst', 'fromutc', 'tzname', 'utcoffset']
+        for attr_name in ["dst", "fromutc", "tzname", "utcoffset"]
     ):
         offset_obj = from_
 
     if offset_obj is None:
-        raise ValueError('Unable to parse time offset: {}'.format(from_))
+        raise ValueError("Unable to parse time offset: {}".format(from_))
 
     return offset_obj
 
 
-def ensure_tzinfo(val, tz_or_offset='UTC', is_dst=False):
+def ensure_tzinfo(val, tz_or_offset="UTC", is_dst=False):
     """
     Creates timezone aware datetime object for ``val``.
 
@@ -94,9 +89,6 @@ def ensure_tzinfo(val, tz_or_offset='UTC', is_dst=False):
     Raises:
         ValueError: When timezone of offset can't be parsed / determined from
             ``tz_or_offset``
-        ``pytz.exceptions.AmbiguousTimeError``: When ``is_dst is None`` and
-            localization of tz unaware object would result with ambiguous (regarding
-            to DST) time.
 
     Note:
         This tries to provide safe(ish) implementation for handling naive
@@ -113,12 +105,7 @@ def ensure_tzinfo(val, tz_or_offset='UTC', is_dst=False):
     tz_or_offset = timezone_or_offset(tz_or_offset)
 
     if not val.tzinfo:
-        if hasattr(tz_or_offset, 'localize'):
-            # pytz recommended way for creating timezone aware objects ...
-            val = tz_or_offset.localize(val, is_dst=is_dst)
-        else:
-            # ... but it is not always possible so we fallback to stdlib
-            val = val.replace(tzinfo=tz_or_offset)
+        val = val.replace(tzinfo=tz_or_offset)
     else:
         val = val.astimezone(tz_or_offset)
 

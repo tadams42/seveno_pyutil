@@ -202,24 +202,18 @@ def add_error_to(
 
             else:
                 if isinstance(v, str):
-                    dest[k][_SELF_ERRORS_KEY] = getval(
-                        dest[k], _SELF_ERRORS_KEY, []
-                    )
+                    dest[k][_SELF_ERRORS_KEY] = getval(dest[k], _SELF_ERRORS_KEY, [])
                     dest[k][_SELF_ERRORS_KEY].append(v)
 
                 elif isinstance(v, list):
-                    dest[k][_SELF_ERRORS_KEY] = getval(
-                        dest[k], _SELF_ERRORS_KEY, []
-                    )
+                    dest[k][_SELF_ERRORS_KEY] = getval(dest[k], _SELF_ERRORS_KEY, [])
                     dest[k][_SELF_ERRORS_KEY].extend(v)
 
                 elif isinstance(v, dict):
                     add_error_to(dest[k], v)
 
                 else:
-                    dest[k][_SELF_ERRORS_KEY] = getval(
-                        dest[k], _SELF_ERRORS_KEY, []
-                    )
+                    dest[k][_SELF_ERRORS_KEY] = getval(dest[k], _SELF_ERRORS_KEY, [])
                     dest[k][_SELF_ERRORS_KEY].append(str(v))
 
         else:

@@ -1,35 +1,49 @@
-language: python
-sudo: false
-cache: pip
-os: linux
-dist: bionic
+dist: focal
+
 env:
   global:
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
     - SEGFAULT_SIGNALS=all
-    - secure: "ZrNE3U+nGdzWCQdrtBUL/sAwjD0wziMaaZNdVSqjppumSjiz1F7WnBuQZfr01C/NAq70MO+mpAD1ypchmothRvmn60ULrzpAgaQP/aRZP7HVDkx6N5CuI3eaDO4iK1SkdSv1rgFwLhmZYFTFNmpsTcSXdYA/oiFbWdbsZ/7msLPqU4eyisrj6OPj3yGbepVoNahIFrIDimCBwgm5gfMgFyb4gGfV5GHaRU3KFQjUrV61IMRIAo4xaPxqLJY36M968VWHhpHBo568SWsQkiJZ0kNqikrSe8VNlt27ATQQjcbx6Bx+MSGGzjnWVaGiSfdCn+cKvDaBcM3yQBZf5KmmE4+tAVyQMmL6j7oNEhddcCpYi59l3vme7xRzLiVI1to94yopSEktZWKg3/yAatKTWz88Hk2WXh0NxmsyhB22DtC/iFCYWKq1iQLZ5Pu3VqcQT0s1rvdOdD7ycQ/Xbpil/9HmAgGrplDnQcc45mmlBPmPUSIoP+i6O/rWauGSMxTGDciCjiXS1P4v+gYrY65jn8JzSRb7CVM07cKl9jlRPDggz+ivr7XSf2XfX6KfuXNOobjuERNNVkdQGROjWvNQQTChrizwzR0NFh+tz17ejC1IASFf+E4IJLeMA9xqsJr9nLDWSOo8zAskYnjc9hB5rMtr2l8cMzKL7gwUCOK2cu8="
-    - secure: "kVSirV7A8Qm0dJ3h8M6f5o4MjZXZ4iZTUI11iulnuZ3fMRepTNlJfbaO8qeT7S21jYxC7jTn5WSXXskseW2xkA9YF9Eg352NMKQtF8YOV/5UMl/RrZ/IjpMjpi8cFeP2KazDS6tbkZAgsTTNMNy9Z6nCLg5IunEZsuJPpzgyDdLMwdnvPTJS1l4RD5adBk2fAdpGoUPU6TlHlbtVHCAmHU0ZXzhOtoWkimwDNhGnZ2Gt8z9oAf0ZuIkbs3+fHNCYIoy+gkXH3UXHH6dKMZnsQ0ZEP3DYwzpJjAeNnQ3xBqP93H6DpjWTubiI0YNJvHgs+f6TSHwdOGsNBQ04ITFl2tbP9vo7HlYisJcrYJrM19UBshmLBhsRBP7wSERMVPLJfeZtwWbQ2WwaEG5p082ZjP8RxIoUOVpyw8PFDCmFqWkDRecH4QRjGC/6Q9YUEXFmqtIfPowUGnApaV9UxB9WIgzob74/FZRtNCY9aqNzE4JNMb5RKt5UFPMxFPwXV+HV3DPSV2VqHm7CDHJJzU8/igx+lLr076kqPHGw8O2d0q6C7IRzPgRgArR5Y2+YgL6PbPVH0xuDUk8POKabpjJ9DyYzcqN2KYtbVU0KCaGUjSfm5L1ZYoEe3gRGCrmhuk+BMW9vnrbhNs5dDLbZiOiTS17we21CnbkbAhuJQ0FMlbs="
-matrix:
+    # CODACY_PROJECT_TOKEN
+    - secure: "QPm5nCqiXma+oXowyt2ocBPWLAUjEC8Cq+Z8apBXYhOvk+s3MVgAf0imofT4TOdYPt3Q3M2Oym0CvE1vRnReN+rNJLOO83ng9Tl6PdSDM3wsQhPzdl3ca1vJQ6+VhHXEnFzyOxHX7IGf+Pf+OvkB9UF36xKAPxGpbOEq+zP9SO2Ry5JguO+LxBU3qi+Xr1kusu+5n2qJ7j2FAg9+Ml7tA8FJyW3hxEfpNGQ0xrbBvxCmedVKVt1l05+NmHyTs3vT5qcdTcPuT8K6f2oRjK+RnOXF5H/FRVMWm8OQ+lek/Ss70xEVv9FeBBcbXSRMGilgdgOAXQds7+EVTJUHiaismjyzPKlCh0+DGBKIs09aTTGMDYa+JqWo8hjcKr3yGoG8JZlT9gYSn5tr6FRi98Iyc3qMhTdJBiAFZmIxaV2C6PHYYoINuSayIPNmozWjQFl8q+s5wVmI2daQRkR1XNKwODLFhBC14GegLmQX5o5HfLF0g7xxU7KDXmeptkyhf2W4m3ecP+rA79agq35dhpfmiBWBC2z4mPBF8mzJmKDzAIHxMLBf52+LCMM+IMyNf9V6Q7rnn5LIxE5MY2xuKUYddEHJLUQxJVZpYi5+VXiZIdIhhAQIsd8rOhHnDu2THAxp6TIIMbYUB1XRc/7oNcr2kTsTtgA5RjIl8fSmr3/74NE="
+
+jobs:
   include:
-    - python: '3.7'
-      env:
-        - TOXENV=check
-    - python: '3.7'
-      env:
-        - TOXENV=docs
-    - python: '3.7'
-      env:
-        - TOXENV=codacy
-    - python: '3.7'
-      env:
-        - TOXENV=3.7
-    - python: '3.8'
-      env:
-        - TOXENV=3.8
-    - python: pypy3
-      env:
-        - TOXENV=pypy3
-install:
-  - pip install tox-travis
-script:
-  - tox
+    - name: "tests and coverage"
+      language: python
+      python: 3.9
+      before_script:
+        - bash <(curl -Ls https://coverage.codacy.com/get.sh) download
+        - pip install .[tests]
+      script:
+        - coverage run --source seveno_pyutil -m pytest -v
+      after_success:
+        - coverage xml
+        - curl -Os https://uploader.codecov.io/latest/linux/codecov
+        - chmod +x codecov
+        - ./codecov
+        - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
+
+    - name: "docs build test"
+      language: python
+      python: 3.9
+      before_script:
+        - pip install .[docs]
+      script:
+        - sphinx-build -E -b html docs dist/docs
+
+    - name: "packaging checks"
+      language: python
+      python: 3.9
+      before_script:
+        - pip install .[tests]
+      script:
+        - python setup.py check --strict --metadata
+        - check-manifest
+        # - isort --check-only --dif
+
+branches:
+  only:
+    - development
+    - master
+    - "/^feature.*$/"

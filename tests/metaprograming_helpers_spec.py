@@ -1,5 +1,8 @@
-from seveno_pyutil.metaprogramming_helpers import (all_subclasses, import_string,
-                                                   leaf_subclasses)
+from seveno_pyutil.metaprogramming_helpers import (
+    all_subclasses,
+    import_string,
+    leaf_subclasses,
+)
 
 
 class Base(object):

@@ -5,7 +5,7 @@ import pytest
 from faker import Faker
 
 TEST_RESOURCES_ROOT = os.path.abspath(
-    os.path.join(getsourcefile(lambda: 0), '..', 'fixtures')
+    os.path.join(getsourcefile(lambda: 0), "..", "fixtures")
 )
 
 fake = Faker()

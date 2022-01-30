@@ -1,8 +1,8 @@
 import logging
 import socket
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-import pytz
 import tzlocal
 
 
@@ -27,7 +27,7 @@ class StandardMetadataFilter(logging.Filter):
     except Exception as exception:
         _HOSTNAME = "-"
 
-    _LOCAL_TZ = tzlocal.get_localzone()
+    _LOCAL_TZ = ZoneInfo(tzlocal.get_localzone_name())
 
     def filter(self, record):
         # Note that naive datetime will not be exported correctly to isoformat:
@@ -35,14 +35,10 @@ class StandardMetadataFilter(logging.Filter):
         #   '2017-05-22T13:51:49.336335'
         # but we don't have this problem because we make sure that here we
         # always have tzinfo on datetime object
-        try:
-            dt = self._LOCAL_TZ.localize(datetime.fromtimestamp(record.created))
-        except AttributeError:
-            dt = datetime.fromtimestamp(record.created).replace(tzinfo=self._LOCAL_TZ)
+        dt = datetime.fromtimestamp(record.created).replace(tzinfo=self._LOCAL_TZ)
 
         record.isotime = dt.isoformat()
-        record.isotime_utc = dt.astimezone(pytz.utc).isoformat()
-
+        record.isotime_utc = dt.astimezone(ZoneInfo("UTC")).isoformat()
         record.hostname = self._HOSTNAME
 
-        return super(StandardMetadataFilter, self).filter(record)
+        return super().filter(record)
