@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1 (2021-03-04)
+
+- fix: prevented SQL logging from producing huge messages and crashing loggers
+
 ## 0.6.0 (2021-01-30)
 
 - dropped support for Python < 3.9
