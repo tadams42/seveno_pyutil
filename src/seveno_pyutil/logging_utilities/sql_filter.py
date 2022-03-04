@@ -209,8 +209,8 @@ class SQLFilter(logging.Filter):
                     ),
                     extra={
                         # rsyslogd limits to 2048 bytes per message by default
-                        "sql_statement": statement[:1536],
-                        "sql_parameters": parameters,
+                        "sql_statement": str(statement)[:750],
+                        "sql_parameters": str(parameters)[:750],
                         "sql_duration_ms": statement_duration.total_seconds() * 1000,
                     },
                 )
@@ -220,8 +220,9 @@ class SQLFilter(logging.Filter):
                 _logger.debug(
                     "",
                     extra={
-                        "sql_statement": statement[:2000],
-                        "sql_parameters": parameters,
+                        # rsyslogd limits to 2048 bytes per message by default
+                        "sql_statement": str(statement)[:750],
+                        "sql_parameters": str(parameters)[:750],
                         "sql_duration_ms": statement_duration.total_seconds() * 1000,
                     },
                 )
@@ -235,15 +236,16 @@ class SQLFilter(logging.Filter):
                     data[cls.KEY_SQL_COUNT] += 1
 
                 except Exception:
-                    _logger.error("Failed to collect SQL statistics!", exc_info=1)
+                    _logger.error("Failed to collect SQL statistics!", exc_info=True)
 
         @event.listens_for(Engine, "handle_error")
         def receive_handle_error(exception_context):
             _logger.critical(
                 "",
                 extra={
-                    "sql_statement": exception_context.statement,
-                    "sql_parameters": exception_context.parameters,
+                    # rsyslogd limits to 2048 bytes per message by default
+                    "sql_statement": str(exception_context.statement)[:750],
+                    "sql_parameters": str(exception_context.parameters)[:750],
                     "sql_duration_ms": duration_ms(
                         exception_context.connection
                     ).total_seconds()
