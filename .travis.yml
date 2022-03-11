@@ -12,16 +12,18 @@ jobs:
     - name: "tests and coverage"
       language: python
       python: 3.9
-      before_script:
+      before_install:
+        - pip install --upgrade pip wheel
+      install:
         - bash <(curl -Ls https://coverage.codacy.com/get.sh) download
+        - curl -Os https://uploader.codecov.io/latest/linux/codecov
+        - chmod +x codecov
         - pip install .[tests]
       script:
-        - coverage run --source seveno_pyutil -m pytest -v
+        - coverage run --source seveno_pyutil -m pytest
       after_success:
         - coverage combine
         - coverage xml
-        - curl -Os https://uploader.codecov.io/latest/linux/codecov
-        - chmod +x codecov
         - ./codecov
         - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
 
