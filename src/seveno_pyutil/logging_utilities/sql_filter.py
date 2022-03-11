@@ -251,10 +251,16 @@ class SQLFilter(logging.Filter):
             )
 
     def __init__(
-        self, colorize_queries=False, multiline_queries=False, *args, **kwargs
+        self,
+        colorize_queries=False,
+        multiline_queries=False,
+        shorten_logs=True,
+        *args,
+        **kwargs
     ):
         self.colorize_queries = colorize_queries
         self.multiline_queries = multiline_queries
+        self.shorten_logs = shorten_logs
         super().__init__(*args, **kwargs)
 
     def filter(self, record):
@@ -305,7 +311,12 @@ class SQLFilter(logging.Filter):
         # statement content. Either way, it is not possible to guarnatee both will
         # be fully logged in all contexts and log sinks
         if params and params_dict:
-            record.sql = "{} with params {}".format(sql[:1300], params[:500])
+            if self.shorten_logs:
+                record.sql = "{} with params {}".format(sql[:1500], params[:500])
+            else:
+                # params should always be shortened because they can be huge in when
+                # for exmple we are inserting into PostgreSQL JSONB columns
+                record.sql = "{} with params {}".format(sql, params[:500])
         else:
             record.sql = (sql or "SQL")[:1300]
 
