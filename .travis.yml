@@ -18,6 +18,7 @@ jobs:
       script:
         - coverage run --source seveno_pyutil -m pytest -v
       after_success:
+        - coverage combine
         - coverage xml
         - curl -Os https://uploader.codecov.io/latest/linux/codecov
         - chmod +x codecov
