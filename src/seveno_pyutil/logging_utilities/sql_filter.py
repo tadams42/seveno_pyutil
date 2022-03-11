@@ -208,9 +208,8 @@ class SQLFilter(logging.Filter):
                         duration_threshold_ms.total_seconds() * 1000
                     ),
                     extra={
-                        # rsyslogd limits to 2048 bytes per message by default
-                        "sql_statement": str(statement)[:750],
-                        "sql_parameters": str(parameters)[:750],
+                        "sql_statement": str(statement),
+                        "sql_parameters": str(parameters),
                         "sql_duration_ms": statement_duration.total_seconds() * 1000,
                     },
                 )
@@ -220,9 +219,8 @@ class SQLFilter(logging.Filter):
                 _logger.debug(
                     "",
                     extra={
-                        # rsyslogd limits to 2048 bytes per message by default
-                        "sql_statement": str(statement)[:750],
-                        "sql_parameters": str(parameters)[:750],
+                        "sql_statement": str(statement),
+                        "sql_parameters": str(parameters),
                         "sql_duration_ms": statement_duration.total_seconds() * 1000,
                     },
                 )
@@ -243,9 +241,8 @@ class SQLFilter(logging.Filter):
             _logger.critical(
                 "",
                 extra={
-                    # rsyslogd limits to 2048 bytes per message by default
-                    "sql_statement": str(exception_context.statement)[:750],
-                    "sql_parameters": str(exception_context.parameters)[:750],
+                    "sql_statement": str(exception_context.statement),
+                    "sql_parameters": str(exception_context.parameters),
                     "sql_duration_ms": duration_ms(
                         exception_context.connection
                     ).total_seconds()
@@ -303,10 +300,14 @@ class SQLFilter(logging.Filter):
                     Terminal256Formatter(style="monokai"),
                 ).strip()
 
+        # rsyslogd limits to 2048 bytes per message by default
+        # We prefer to lose some params when shortening log line than to lose some SQL
+        # statement content. Either way, it is not possible to guarnatee both will
+        # be fully logged in all contexts and log sinks
         if params and params_dict:
-            record.sql = "{} with params {}".format(sql, params)
+            record.sql = "{} with params {}".format(sql[:1300], params[:500])
         else:
-            record.sql = sql or "SQL"
+            record.sql = (sql or "SQL")[:1300]
 
         duration = getattr(record, "sql_duration_ms", None) or getattr(
             record, "duration", None
