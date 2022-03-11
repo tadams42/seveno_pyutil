@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.3 (2021-03-11)
+
+- fix: SQL logs shortening is now configurable, for ultimate flexibility
+
 ## 0.6.2 (2021-03-11)
 
 - fix: another try at SQL logging very long SQL statements and/or parameters
