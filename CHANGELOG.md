@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2 (2021-03-11)
+
+- fix: another try at SQL logging very long SQL statements and/or parameters
+
 ## 0.6.1 (2021-03-04)
 
 - fix: prevented SQL logging from producing huge messages and crashing loggers
