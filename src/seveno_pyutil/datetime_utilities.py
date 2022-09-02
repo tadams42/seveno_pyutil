@@ -1,5 +1,6 @@
 import re
-from datetime import datetime, timedelta, tzinfo
+from datetime import date, datetime, timedelta, tzinfo
+from typing import Optional, Union
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from dateutil.tz import tzoffset
@@ -7,7 +8,10 @@ from dateutil.tz import tzoffset
 _ISO_8601_OFFSET = re.compile(r"([+-]?)([0-9]{2})[:]?([0-9]{0,2})")
 
 
-def timezone_or_offset(from_):
+TzOffsetLike = Optional[Union[str, int, timedelta, tzinfo]]
+
+
+def timezone_or_offset(from_: TzOffsetLike):
     """
     Given ``from_`` creates `datetime.tzinfo` or `dateutil.tz.tzoffset` as
     result.
@@ -66,7 +70,9 @@ def timezone_or_offset(from_):
     return offset_obj
 
 
-def ensure_tzinfo(val, tz_or_offset="UTC", is_dst=False):
+def ensure_tzinfo(
+    val: datetime, tz_or_offset: TzOffsetLike = "UTC", is_dst: bool = False
+) -> datetime:
     """
     Creates timezone aware datetime object for ``val``.
 
@@ -76,15 +82,15 @@ def ensure_tzinfo(val, tz_or_offset="UTC", is_dst=False):
       ``tz_or_offset`` timezone using `datetime.datetime.astimezone`
 
     Arguments:
-        val(datetime.datetime): Input value for conversion
+        val: Input value for conversion
         tz_or_offset: Anything that `timezone_or_offset` accepts
-        is_dst(bool): used to determine the correct timezone in the ambiguous
+        is_dst: used to determine the correct timezone in the ambiguous
             period at the end of daylight saving time. Use ``is_dst=None`` to
             raise an AmbiguousTimeError for ambiguous times at the end of
             daylight saving time.
 
     Return:
-        datetime.datetime: Timezone aware datetime object
+        Timezone aware datetime object
 
     Raises:
         ValueError: When timezone of offset can't be parsed / determined from
@@ -110,3 +116,60 @@ def ensure_tzinfo(val, tz_or_offset="UTC", is_dst=False):
         val = val.astimezone(tz_or_offset)
 
     return val
+
+
+def iter_year_month(
+    start: Union[date, datetime],
+    end: Optional[date] = None,
+    include_start: bool = False,
+    include_end: bool = False,
+):
+    """
+    Generates range of date(year, month, 1) from ``start`` to ``end``.
+
+    - when ``start > end`` generated range is empty
+    - when ``start == end`` generated range may contain single ``date`` object
+      depending on ``include_start`` or ``include_end``
+
+    Arguments:
+        start: begin of range
+        end: end of range. If ``None``, assumes, ``start == end``
+        include_start: include ``start`` in generated range
+        include_end: include ``end`` in generated range
+    """
+
+    if not end:
+        end = start
+
+    start = date(year=start.year, month=start.month, day=1)
+    end = date(year=end.year, month=end.month, day=1)
+
+    if start > end:
+        return
+
+    if start == end:
+        if include_start or include_end:
+            yield start
+        return
+
+    val = date(year=start.year, month=start.month, day=1)
+
+    if include_start:
+        yield val
+
+    end_reached = False
+    while not end_reached:
+        try:
+            val = val.replace(month=val.month + 1)
+
+        except ValueError:
+            if val.month == 12:
+                val = val.replace(year=val.year + 1, month=1)
+
+        if val == end:
+            if include_end:
+                yield val
+            end_reached = True
+
+        else:
+            yield val
