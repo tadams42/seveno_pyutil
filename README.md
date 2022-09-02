@@ -1,6 +1,6 @@
 # Overview
 
-[![PyPi Status](https://badge.fury.io/py/seveno_pyutil.svg)](https://badge.fury.io/py/seveno_pyutil)
+[![PyPI Status](https://badge.fury.io/py/seveno-pyutil.svg)](https://badge.fury.io/py/seveno-pyutil)
 [![license](https://img.shields.io/pypi/l/seveno_pyutil.svg)](https://opensource.org/licenses/MIT)
 [![tests](https://github.com/tadams42/seveno_pyutil/actions/workflows/tests.yaml/badge.svg?branch=development)](https://github.com/tadams42/seveno_pyutil/actions/workflows/tests.yaml)
 [![codecov](https://codecov.io/gh/tadams42/seveno_pyutil/branch/development/graph/badge.svg?token=9WIWK7B3XX)](https://codecov.io/gh/tadams42/seveno_pyutil)
