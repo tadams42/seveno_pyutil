@@ -1,10 +1,89 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "seveno-pyutil"
+version = "0.6.3"
+description = "Various unsorted Python utilities"
+readme = "README.md"
+classifiers = [
+	"Development Status :: 4 - Beta",
+	"Intended Audience :: Developers",
+	"License :: OSI Approved :: MIT License",
+	"Programming Language :: Python",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.9",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3 :: Only",
+	"Operating System :: OS Independent",
+	"Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+	"tzdata",
+	"tzlocal",
+	"python-dateutil>=2.6.0",
+	"colorlog",
+	"marshmallow>=3",
+	"pygments",
+	"sqlparse",
+]
+keywords = ["utilities"]
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [{ name = "Tomislav Adamic", email = "tomislav.adamic@gmail.com" }]
+
+
+[project.urls]
+Source = "https://github.com/tadams42/seveno_pyutil"
+Documentation = "https://seveno-pyutil.readthedocs.io/en/latest/"
+
+
+[project.optional-dependencies]
+dev = [
+	"black",
+	"bump2version",
+	"check-manifest",
+	"coverage",
+	"factory-boy",
+	"faker",
+	"furo",
+	"ipython",
+	"isort",
+	"myst-parser",
+	"pytest-spec",
+	"pytest",
+	"sphinx-copybutton",
+	"sphinx",
+	"twine",
+]
+docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
+tests = [
+	"check-manifest",
+	"pytest",
+	"coverage",
+	"factory-boy",
+	"faker",
+	"pytest-spec",
+]
+
+
+[tool.setuptools]
+zip-safe = false
+platforms = ["any"]
+include-package-data = true
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["tests"]
+
 
 [tool.isort]
 profile = "black"
 skip_gitignore = true
+
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -32,13 +111,15 @@ python_functions = ["it_*", "test_*", "then_*", "when_*"]
 python_files = ["test_*", "*_spec.py", "*_test.py"]
 spec_header_format = "{test_case}"
 
+
 [tool.coverage.paths]
 source = ["src"]
+
 
 [tool.coverage.run]
 source = ["src", "tests"]
 
+
 [tool.coverage.report]
 show_missing = true
 precision = 2
-omit = ["*migrations*"]
