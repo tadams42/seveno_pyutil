@@ -228,3 +228,23 @@ Processing iterable in batches
             worker.join()
 
         print("batch %s done" % batch)
+
+
+Iterating over range of year months
+-----------------------------------
+
+.. code-block:: python
+
+    from datetime import date
+    from seveno_pyutil import iter_year_month
+
+    for _ in iter_year_month(
+        date(2022, 10, 13), date(2023, 4, 17)
+    ):
+        print(_)
+
+    # 2022-11-01
+    # 2022-12-01
+    # 2023-01-01
+    # 2023-02-01
+    # 2023-03-01
