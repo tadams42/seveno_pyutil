@@ -1,13 +1,7 @@
-from datetime import date, datetime
-from typing import AnyStr, Iterable, Union
-
-try:
-    import simplejson as json
-except Exception:
-    import json
+from typing import Any
 
 
-def is_blank(obj: Union[AnyStr, Iterable, None]) -> bool:
+def is_blank(obj: Any) -> bool:
     """
     True if obj is empty string, None, string that contains only spaces and space like
     characters, or iterable that contains only these kinds of strings/objects

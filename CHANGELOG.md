@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0 (unreleased)
+
+- feat: added `iter_year_month`
+- switched from TravisCI -> GitHub actions
+
 ## 0.6.3 (2021-03-11)
 
 - fix: SQL logs shortening is now configurable, for ultimate flexibility
