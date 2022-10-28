@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.7.0 (unreleased)
+## 0.7.1 (2022-10-28)
+
+- feat: prettier error log message in SQLFilter
+
+## 0.7.0 (2022-09-02)
 
 - feat: added `iter_year_month`
 - switched from TravisCI -> GitHub actions
