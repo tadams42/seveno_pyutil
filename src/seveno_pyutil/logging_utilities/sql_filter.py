@@ -238,8 +238,14 @@ class SQLFilter(logging.Filter):
 
         @event.listens_for(Engine, "handle_error")
         def receive_handle_error(exception_context):
+            msg = "SQL engine exception detected."
+            try:
+                msg = msg + " " + str(exception_context.original_exception).strip()
+            except Exception:
+                msg = "SQL engine exception detected. "
+
             _logger.critical(
-                "",
+                msg,
                 extra={
                     "sql_statement": str(exception_context.statement),
                     "sql_parameters": str(exception_context.parameters),
@@ -256,7 +262,7 @@ class SQLFilter(logging.Filter):
         multiline_queries=False,
         shorten_logs=True,
         *args,
-        **kwargs
+        **kwargs,
     ):
         self.colorize_queries = colorize_queries
         self.multiline_queries = multiline_queries
@@ -318,7 +324,7 @@ class SQLFilter(logging.Filter):
                 # for exmple we are inserting into PostgreSQL JSONB columns
                 record.sql = "{} with params {}".format(sql, params[:500])
         else:
-            record.sql = (sql or "SQL")[:1300]
+            record.sql = (sql or " SQL")[:1300]
 
         duration = getattr(record, "sql_duration_ms", None) or getattr(
             record, "duration", None
