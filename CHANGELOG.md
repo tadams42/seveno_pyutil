@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0 (2023-02-24)
+
+- feat: replaced logging formatters with `PrettyFormatter`
+- feat: added `next_working_day()`
+- feat: replaced dateutil timezones with `zoneinfo`
+- chore: added some `typing` annotations
+
 ## 0.7.1 (2022-10-28)
 
 - feat: prettier error log message in SQLFilter
