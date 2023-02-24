@@ -13,7 +13,7 @@ jobs:
   run_tests:
     strategy:
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     name: "${{ matrix.os }} 🔹 🐍 ${{ matrix.python-version }}"
@@ -40,15 +40,15 @@ jobs:
       # Tests coverage
       #---------------------------------------------------------------------------------
       # We need coverage data only from single tests run.
-      - name: "run tests with coverage 🔹 🐍 3.9"
-        if: ${{ matrix.python-version == '3.9'}}
+      - name: "run tests with coverage 🔹 🐍 3.11"
+        if: ${{ matrix.python-version == '3.11'}}
         run: coverage run -m pytest
-      - name: "generate coverage xml 🔹 🐍 3.9"
-        if: ${{ matrix.python-version == '3.9'}}
+      - name: "generate coverage xml 🔹 🐍 3.11"
+        if: ${{ matrix.python-version == '3.11'}}
         run: coverage xml
-      - name: "generate coverage report 🔹 🐍 3.9"
-        if: ${{ matrix.python-version == '3.9'}}
+      - name: "generate coverage report 🔹 🐍 3.11"
+        if: ${{ matrix.python-version == '3.11'}}
         run: coverage report
-      - name: "upload coverage to codecov.io 🔹 🐍 3.9"
-        if: ${{ matrix.python-version == '3.9'}}
+      - name: "upload coverage to codecov.io 🔹 🐍 3.11"
+        if: ${{ matrix.python-version == '3.11'}}
         uses: codecov/codecov-action@v3

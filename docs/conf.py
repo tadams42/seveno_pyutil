@@ -46,3 +46,8 @@ intersphinx_mapping = {
 }
 
 add_module_names = False
+
+
+# Napoleon settings
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False
