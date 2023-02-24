@@ -30,7 +30,7 @@ logging utilities
 -----------------
 
 .. automodule:: seveno_pyutil.logging_utilities
-   :members: StandardMetadataFilter, silence_logger, SQLFilter, log_to_console_for, log_to_tmp_file_for, SingleLineFormatter, SingleLineColoredFormatter
+   :members: StandardMetadataFilter, silence_logger, SQLFilter, log_to_console_for, log_to_tmp_file_for, PrettyFormatter
 
 metaprogramming helpers
 -----------------------

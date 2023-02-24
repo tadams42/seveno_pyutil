@@ -19,61 +19,61 @@ class PrettyFormatter(colorlog.ColoredFormatter):
 
     Example YAML logging config to use it:
 
-    ```yaml
-    ---
-    version: 1
+    .. code-block:: yaml
 
-    loggers:
-      my_app:
+        ---
+        version: 1
+
+        loggers:
+          my_app:
+            handlers:
+              - console
+            level: INFO
+            propagate: false
+
         handlers:
-          - console
-        level: INFO
-        propagate: false
+          console:
+            class: logging.StreamHandler
+            filters:
+              - request_id
+            stream: ext://sys.stdout
+            formatter: colored_multiline
 
-    handlers:
-      console:
-        class: logging.StreamHandler
-        filters:
-          - request_id
-        stream: ext://sys.stdout
-        formatter: colored_multiline
+        formatters:
+          colored_multiline:
+            (): seveno_pyutil.PrettyFormatter
+            force_single_line: false
+            colorize: true
+            format: >-
+              lvl=%(log_color)s%(levelname)s%(reset)s
+              ts=%(thin_white)s%(asctime)s%(reset)s
+              msg=%(message)s
 
-    formatters:
-      colored_multiline:
-        (): seveno_pyutil.PrettyFormatter
-        force_single_line: false
-        colorize: true
-        format: >-
-          lvl=%(log_color)s%(levelname)s%(reset)s
-          ts=%(thin_white)s%(asctime)s%(reset)s
-          msg=%(message)s
-
-      colorless_single_line:
-        (): seveno_pyutil.PrettyFormatter
-        force_single_line: true
-        colorize: false
-        format: >-
-          lvl=%(levelname)s
-          ts=%(asctime)s
-          msg=%(message)s
-    ```
+          colorless_single_line:
+            (): seveno_pyutil.PrettyFormatter
+            force_single_line: true
+            colorize: false
+            format: >-
+              lvl=%(levelname)s
+              ts=%(asctime)s
+              msg=%(message)s
 
     Some of available colors are:
 
-    ```py
-    [
-        'black', 'bold_black', 'thin_black', 'red', 'bold_red', 'thin_red', 'green',
-        'bold_green', 'thin_green', 'yellow', 'bold_yellow', 'thin_yellow', 'blue',
-        'bold_blue', 'thin_blue', 'purple', 'bold_purple', 'thin_purple', 'cyan',
-        'bold_cyan', 'thin_cyan', 'white', 'bold_white', 'thin_white', "..."
-    ]
-    ```
+    .. code-block:: python
+
+        [
+            'black', 'bold_black', 'thin_black', 'red', 'bold_red', 'thin_red', 'green',
+            'bold_green', 'thin_green', 'yellow', 'bold_yellow', 'thin_yellow', 'blue',
+            'bold_blue', 'thin_blue', 'purple', 'bold_purple', 'thin_purple', 'cyan',
+            'bold_cyan', 'thin_cyan', 'white', 'bold_white', 'thin_white', "..."
+        ]
 
     Others can be retrieved via:
 
-    ```py
-    colorlog.ColoredFormatter()._escape_code_map("DEBUG").keys()
-    ```
+    .. code-block:: python
+
+        colorlog.ColoredFormatter()._escape_code_map("DEBUG").keys()
 
     or check docs for `colorlog`.
     """
