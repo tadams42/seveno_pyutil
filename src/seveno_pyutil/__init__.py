@@ -1,4 +1,4 @@
-__version__ = "0.7.1"
+__version__ = "0.8.0"
 
 import logging
 
@@ -15,8 +15,7 @@ from .file_utilities import (
     switch_extension,
 )
 from .logging_utilities import (
-    SingleLineColoredFormatter,
-    SingleLineFormatter,
+    PrettyFormatter,
     SQLFilter,
     StandardMetadataFilter,
     log_to_console_for,

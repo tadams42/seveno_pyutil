@@ -1,13 +1,13 @@
 import logging
 import sys
-import traceback
-from logging import NullHandler
+from logging import Logger, NullHandler
+from pathlib import Path
+from typing import Union
 
 
-def silence_logger(logger):
+def silence_logger(logger: Logger):
     """
-    For given logger, replaces all its handlers with
-    :class:`logging.NullHandler`.
+    For given logger, replaces all its handlers with :class:`logging.NullHandler`.
     """
     while logger.handlers:
         logger.removeHandler(logger.handlers[0])
@@ -15,11 +15,11 @@ def silence_logger(logger):
     logger.addHandler(NullHandler())
 
 
-def log_to_console_for(logger_name):
+def log_to_console_for(logger_name: str):
     """
-    Sometimes, usually during development, we want to quickly see output of
-    some particular package logger. This method will configure such logger
-    to spit stuff out to console.
+    Sometimes, usually during development, we want to quickly see output of some
+    particular package logger. This method will configure such logger to spit stuff out
+    to console.
     """
     logger = logging.getLogger(logger_name)
     handler = logging.StreamHandler(sys.stdout)
@@ -28,11 +28,13 @@ def log_to_console_for(logger_name):
     logger.addHandler(handler)
 
 
-def log_to_tmp_file_for(logger_name, file_path="/tmp/seveno_pyutil.log"):
+def log_to_tmp_file_for(
+    logger_name: str, file_path: Union[str, Path] = "/tmp/seveno_pyutil.log"
+):
     """
-    Quick setup for given logger directing it to ``/tmp/seveno_pyutil.log``
-    This is of course mainly used during development, especially when playing
-    with things in Python console.
+    Quick setup for given logger directing it to ``/tmp/seveno_pyutil.log`` This is of
+    course mainly used during development, especially when playing with things in Python
+    console.
     """
     logger = logging.getLogger(logger_name)
     handler = logging.FileHandler(filename=file_path)

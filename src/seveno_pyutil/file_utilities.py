@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 import errno
 import os
 import shutil
+from pathlib import Path
+from typing import Union
 
 from .string_utilities import is_blank
 
 
-def file_checksum(file_path, hash_callable):
+def file_checksum(file_path: Union[str, Path], hashlib_callable):
     """Given path of the file and hash function, calculates file digest"""
-    if os.path.isfile(file_path) and callable(hash_callable):
-        hash_obj = hash_callable()
+    if os.path.isfile(file_path) and callable(hashlib_callable):
+        hash_obj = hashlib_callable()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_obj.update(chunk)
@@ -17,7 +21,7 @@ def file_checksum(file_path, hash_callable):
     return None
 
 
-def silent_create_dirs(dir_path):
+def silent_create_dirs(dir_path: Union[str, Path]):
     """Tries to create directory and silently skips if it exists."""
     try:
         os.makedirs(os.path.abspath(dir_path))
@@ -30,7 +34,7 @@ def silent_create_dirs(dir_path):
             raise
 
 
-def abspath_if_relative(relative_path, relative_to):
+def abspath_if_relative(relative_path: Union[str, Path], relative_to: Union[str, Path]):
     """Creates absolute path from relative, but places it under other path.
 
     Example:
@@ -49,7 +53,7 @@ def abspath_if_relative(relative_path, relative_to):
     return retv
 
 
-def move_and_create_dest(src_path, dst_dir):
+def move_and_create_dest(src_path: Union[str, Path], dst_dir: Union[str, Path]):
     """
     Moves ``src_path`` to ``dst_dir`` directory.
 
@@ -61,7 +65,7 @@ def move_and_create_dest(src_path, dst_dir):
     return os.path.join(dst_dir, os.path.basename(src_path))
 
 
-def silent_remove(file_or_dir_path):
+def silent_remove(file_or_dir_path: Union[str, Path]):
     """
     Deletes file or directory (even if not empty). Doesn't rise if it doesn't
     exist.
@@ -81,7 +85,7 @@ def silent_remove(file_or_dir_path):
             raise
 
 
-def switch_extension(file_path, new_extension):
+def switch_extension(file_path: str, new_extension: str):
     if is_blank(new_extension):
         return file_path
 

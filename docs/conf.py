@@ -12,7 +12,7 @@ project = "seveno-pyutil"
 copyright = (
     ", ".join(str(y) for y in range(2017, datetime.now().year + 1)) + ", " + author
 )
-release = "0.7.1"
+release = "0.8.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -46,3 +46,8 @@ intersphinx_mapping = {
 }
 
 add_module_names = False
+
+
+# Napoleon settings
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False

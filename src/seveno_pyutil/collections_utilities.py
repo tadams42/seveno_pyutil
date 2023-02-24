@@ -1,11 +1,12 @@
 import itertools
+from typing import Any, Iterable
 
 
-def in_batches(iterable, of_size=1):
+def in_batches(iterable: Iterable[Any], of_size: int = 1):
     """
     Generator that yields generator slices of iterable.
 
-    Since it is elegant and working flawlessly, it is shameles C/P from
+    Since it is elegant and working flawlessly, it is shameless C/P from
     https://stackoverflow.com/questions/8991506/iterate-an-iterator-by-chunks-of-n-in-python/8998040#8998040
 
     Warning:
@@ -24,7 +25,8 @@ def in_batches(iterable, of_size=1):
         # [6, 7, 8]
         # [9]
 
-        # And don't consume whole batch before yielding another one...
+        # And this happens if whole batch is not consumed before yielding another one...
+
         g = list(range(10))
         for batch in in_batches(g, of_size=3):
             print( [next(batch), next(batch)] )
