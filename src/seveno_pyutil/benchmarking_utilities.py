@@ -1,7 +1,7 @@
 import timeit
 
 
-class Stopwatch(object):
+class Stopwatch:
     """
     Simple stopwatch that measures duration of block of code in [ms]
 
