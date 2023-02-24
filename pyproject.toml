@@ -26,6 +26,7 @@ dependencies = [
 	"colorlog",
 	"marshmallow>=3",
 	"pygments",
+	"holidays",
 	"sqlparse",
 	"tzlocal",
 ]

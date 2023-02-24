@@ -3,12 +3,21 @@ from datetime import date, datetime, timedelta, timezone, tzinfo
 from typing import Optional, Union
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+import holidays
 
 TimeZoneLike = Union[str, int, timedelta, tzinfo, ZoneInfo, timezone]
 
+CROATIAN_HOLIDAYS = holidays.HR()
+_ONE_DAY = timedelta(days=1)
 _ISO_8601_OFFSET = re.compile(r"([+-]?)([0-9]{2})[:]?([0-9]{0,2})")
 
 
+def next_working_day(from_: Optional[date] = None, holidays_calendar=CROATIAN_HOLIDAYS):
+    """Finds next work day from `from_` or today."""
+    next_day = (from_ or date.today()) + _ONE_DAY
+    while next_day.weekday() in holidays.WEEKEND or next_day in holidays_calendar:
+        next_day += _ONE_DAY
+    return next_day
 
 
 def timezone_or_offset(from_: Optional[TimeZoneLike]) -> Union[ZoneInfo, timezone]:
