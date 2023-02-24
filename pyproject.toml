@@ -22,11 +22,12 @@ classifiers = [
 	"Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-	"python-dateutil>=2.6.0",
 	"colorlog",
-	"marshmallow>=3",
-	"pygments",
 	"holidays",
+	"marshmallow>=3",
+	"pretty_traceback",
+	"pygments",
+	"python-dateutil>=2.6.0",
 	"sqlparse",
 	"tzlocal",
 ]
