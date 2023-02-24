@@ -2,6 +2,7 @@ import logging
 import sys
 from logging import Logger, NullHandler
 from pathlib import Path
+from typing import Union
 
 
 def silence_logger(logger: Logger):
@@ -28,7 +29,7 @@ def log_to_console_for(logger_name: str):
 
 
 def log_to_tmp_file_for(
-    logger_name: str, file_path: str | Path = "/tmp/seveno_pyutil.log"
+    logger_name: str, file_path: Union[str, Path] = "/tmp/seveno_pyutil.log"
 ):
     """
     Quick setup for given logger directing it to ``/tmp/seveno_pyutil.log`` This is of
