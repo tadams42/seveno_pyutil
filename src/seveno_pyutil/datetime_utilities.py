@@ -1,19 +1,19 @@
 import re
-from datetime import date, datetime, timedelta, tzinfo
+from datetime import date, datetime, timedelta, timezone, tzinfo
 from typing import Optional, Union
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from dateutil.tz import tzoffset
+
+TimeZoneLike = Union[str, int, timedelta, tzinfo, ZoneInfo, timezone]
 
 _ISO_8601_OFFSET = re.compile(r"([+-]?)([0-9]{2})[:]?([0-9]{0,2})")
 
 
-TzOffsetLike = Optional[Union[str, int, timedelta, tzinfo]]
 
 
-def timezone_or_offset(from_: TzOffsetLike):
+def timezone_or_offset(from_: Optional[TimeZoneLike]) -> Union[ZoneInfo, timezone]:
     """
-    Given ``from_`` creates `datetime.tzinfo` or `dateutil.tz.tzoffset` as
+    Given ``from_`` creates `datetime.timezone` or `zoneinfo.ZoneInfo` as
     result.
 
     ``from_`` can be any of following:
@@ -29,6 +29,9 @@ def timezone_or_offset(from_: TzOffsetLike):
     if from_ is None:
         offset_obj = ZoneInfo("UTC")
 
+    elif isinstance(from_, (ZoneInfo, timezone)):
+        return from_
+
     elif isinstance(from_, str):
         try:
             offset_obj = ZoneInfo(from_)
@@ -42,7 +45,7 @@ def timezone_or_offset(from_: TzOffsetLike):
                 match_object = _ISO_8601_OFFSET.match(from_)
                 if match_object:
                     sign, hours, minutes = match_object.groups()
-                    offset_obj = tzoffset(
+                    offset_obj = timezone(
                         name=from_,
                         offset=timedelta(
                             hours=(-1 if sign == "-" else 1) * int(hours),
@@ -51,10 +54,10 @@ def timezone_or_offset(from_: TzOffsetLike):
                     )
 
     elif isinstance(from_, timedelta):
-        offset_obj = tzoffset(name="{} s".format(from_.total_seconds()), offset=from_)
+        offset_obj = timezone(name="{} s".format(from_.total_seconds()), offset=from_)
 
     elif isinstance(from_, int):
-        offset_obj = tzoffset(
+        offset_obj = timezone(
             name="{} s".format(from_), offset=timedelta(seconds=from_)
         )
 
@@ -62,7 +65,7 @@ def timezone_or_offset(from_: TzOffsetLike):
         hasattr(from_, attr_name)
         for attr_name in ["dst", "fromutc", "tzname", "utcoffset"]
     ):
-        offset_obj = from_
+        offset_obj = timezone(name=from_.tzname(None), offset=from_.utcoffset(None))
 
     if offset_obj is None:
         raise ValueError("Unable to parse time offset: {}".format(from_))
@@ -71,7 +74,7 @@ def timezone_or_offset(from_: TzOffsetLike):
 
 
 def ensure_tzinfo(
-    val: datetime, tz_or_offset: TzOffsetLike = "UTC", is_dst: bool = False
+    val: datetime, tz_or_offset: TimeZoneLike = "UTC", is_dst: bool = False
 ) -> datetime:
     """
     Creates timezone aware datetime object for ``val``.

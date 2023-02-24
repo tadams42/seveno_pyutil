@@ -22,13 +22,12 @@ classifiers = [
 	"Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-	"tzdata",
-	"tzlocal",
 	"python-dateutil>=2.6.0",
 	"colorlog",
 	"marshmallow>=3",
 	"pygments",
 	"sqlparse",
+	"tzlocal",
 ]
 keywords = ["utilities"]
 license = { text = "MIT" }
