@@ -42,7 +42,7 @@ class SQLFilter(logging.Filter):
     - add it to ``sqlalchemy.engine`` logger and call
       `:meth:register_sqlalchemy_logging_events`
 
-    Supports following loging placeholders:
+    Supports following logging placeholders:
 
     +-------------------+----------------------------------------------+
     | placeholder       | description                                  |
@@ -179,18 +179,24 @@ class SQLFilter(logging.Filter):
             duration_threshold_ms = timedelta(milliseconds=duration_threshold_ms)
 
         def duration_ms(conn):
-            return timedelta(
-                milliseconds=(
-                    timeit.default_timer() - conn.info["query_start_time"].pop(-1)
+            if conn:
+                return timedelta(
+                    milliseconds=(
+                        timeit.default_timer() - conn.info["query_start_time"].pop(-1)
+                    )
+                    * 1000.0
                 )
-                * 1000.0
-            )
+            else:
+                return timedelta(milliseconds=0)
 
         @event.listens_for(Engine, "before_cursor_execute")
         def before_cursor_execute(
             conn, cursor, statement, parameters, context, executemany
         ):
-            conn.info.setdefault("query_start_time", []).append(timeit.default_timer())
+            if conn:
+                conn.info.setdefault("query_start_time", []).append(
+                    timeit.default_timer()
+                )
 
         @event.listens_for(Engine, "after_cursor_execute")
         def after_cursor_execute(
