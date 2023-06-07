@@ -33,15 +33,7 @@ if TYPE_CHECKING:
 
 class SQLFilter(logging.Filter):
     """
-    Filter for Django's and SQLAlchemy SQL loggers. Reformats and colorizes
-    queries.
-
-    To use it with Django:
-
-    - add it to ``django.db.backends`` and ``django.db.backends.schema``
-      loggers
-    - remove ``%(message)s`` from log format because it will cause to double
-      emit each SQL statement. Use this filter's placeholder's instead.
+    Filter for SQLAlchemy SQL loggers. Optionally reformats and colorizes queries.
 
     To use it with SQLAlchemy:
 
@@ -83,7 +75,6 @@ class SQLFilter(logging.Filter):
             'version': 1,
             'disable_existing_loggers': False,
             'formatters': {
-                'django_sql': {'format': '(%(sql_duration)s) %(sql)s'},
                 'sqlalchemy_sql': {'format': '(%(sql_duration)s) %(sql)s %(message)s'}
             },
             'filters': {
@@ -94,13 +85,6 @@ class SQLFilter(logging.Filter):
                 }
             },
             'handlers': {
-                'console_django': {
-                    'class': 'logging.StreamHandler',
-                    'level': 'DEBUG',
-                    'formatter': 'django_sql',
-                    'filters': ['colored_sql'],
-                    'stream': 'ext://sys.stdout'
-                },
                 'console_sqlalchemy': {
                     'class': 'logging.StreamHandler',
                     'level': 'DEBUG',
@@ -114,16 +98,6 @@ class SQLFilter(logging.Filter):
                     'level': 'DEBUG',
                     'propagate': False,
                     'handlers': ['console_sqlalchemy']
-                },
-                'django.db.backends': {
-                    'level': 'DEBUG',
-                    'propagate': False,
-                    'handlers': ['console_django']
-                },
-                'django.db.backends.schema': {
-                    'level': 'DEBUG',
-                    'propagate': False,
-                    'handlers': ['console_django']
                 }
             }
         })
@@ -151,24 +125,13 @@ class SQLFilter(logging.Filter):
                 during one HTTP request::
 
                     import flask
-                    from seveno_pyutil import register_sqlalchemy_logging_events
+                    from seveno_pyutil import FlaskSQLStats, SQLFilter
 
-                    def sqlalchemy_stats():
-                        return flask.g.setdefault("sqlalchemy_statistics", {})
-
-                    register_sqlalchemy_logging_events(
-                        "may_app_sql_logger", statistics_ctx_get=sqlalchemy_stats
+                    SQLFilter.register_sqlalchemy_logging_events(
+                        "may_app_sql_logger", 100
                     )
 
-                    @flask.before_request
-                    def track_sqlalchemy():
-                        @flask.after_this_request
-                        def log_sqlalchemy_stats(response):
-                            logger.info(
-                                "SQLAlchemy statistics for request %s",
-                                sqlalchemy_stats()
-                            )
-                            flask.g["sqlalchemy_statistics"] = {}
+                    db.session.execute("select * from books")
         """
 
         from sqlalchemy import event
