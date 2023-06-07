@@ -337,16 +337,27 @@ class RecordEnricher:
             )
             return sql
 
+    _SQL_FORMAT_OPTS = {
+        "reindent": True,
+        "keyword_case": "upper",
+        "truncate_strings": 25,
+        "reindent_aligned": True,
+        "wrap_after": 88,
+    }
+
     def _maybe_multiline(self, sql: str) -> str:
         if sql:
             if self.multiline_queries:
-                sql = sqlparse.format(sql, reindent=True, keyword_case="upper").strip()
+                sql = "\n".join(
+                    l.rstrip()
+                    for l in sqlparse.format(sql, **self._SQL_FORMAT_OPTS).splitlines()
+                    if l.strip()
+                ).strip()
             else:
                 sql = " ".join(
                     l.strip()
-                    for l in sqlparse.format(
-                        sql, reindent=True, keyword_case="upper"
-                    ).splitlines()
+                    for l in sqlparse.format(sql, **self._SQL_FORMAT_OPTS).splitlines()
+                    if l.strip()
                 ).strip()
 
             if sql and not sql.endswith(";"):
