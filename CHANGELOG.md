@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.2 (2023-06-07)
+
+- feat: prettier format for multiline SQL in SQLFilter
+
 ## 0.8.1 (2023-06-07)
 
 - feat: SQLFiler can now sometimes print real SQL instead of query string + params
