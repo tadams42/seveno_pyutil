@@ -76,3 +76,6 @@ docs/_build
 *.code-workspace
 
 /scratchpad
+
+.python-version
+
