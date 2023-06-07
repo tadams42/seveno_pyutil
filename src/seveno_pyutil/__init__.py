@@ -15,6 +15,7 @@ from .file_utilities import (
     switch_extension,
 )
 from .logging_utilities import (
+    FlaskSQLStats,
     PrettyFormatter,
     SQLFilter,
     StandardMetadataFilter,
