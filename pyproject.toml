@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seveno-pyutil"
-version = "0.8.0"
+version = "0.8.1"
 description = "Various unsorted Python utilities"
 readme = "README.md"
 classifiers = [
@@ -14,7 +14,6 @@ classifiers = [
 	"License :: OSI Approved :: MIT License",
 	"Programming Language :: Python",
 	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.9",
 	"Programming Language :: Python :: 3.10",
 	"Programming Language :: Python :: 3.11",
 	"Programming Language :: Python :: 3 :: Only",
@@ -33,7 +32,7 @@ dependencies = [
 ]
 keywords = ["utilities"]
 license = { text = "MIT" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [{ name = "Tomislav Adamic", email = "tomislav.adamic@gmail.com" }]
 
 

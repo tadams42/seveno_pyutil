@@ -1,4 +1,4 @@
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 
 import logging
 
@@ -15,6 +15,7 @@ from .file_utilities import (
     switch_extension,
 )
 from .logging_utilities import (
+    FlaskSQLStats,
     PrettyFormatter,
     SQLFilter,
     StandardMetadataFilter,

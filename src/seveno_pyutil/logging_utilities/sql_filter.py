@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import enum
 import logging
 import timeit
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
+from typing import TYPE_CHECKING, Callable, ClassVar, Final
 
 import pygments
 import sqlparse
@@ -15,14 +19,16 @@ try:
 except Exception:
     import json
 
+HAS_FLASK = False
+try:
+    import flask
 
-class JsonEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, (date, datetime)):
-            return o.isoformat()
-        if isinstance(o, enum.Enum):
-            return o.name
-        return super().default(o)
+    HAS_FLASK = True
+except Exception:
+    pass
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Connection, Engine
 
 
 class SQLFilter(logging.Filter):
@@ -124,12 +130,11 @@ class SQLFilter(logging.Filter):
 
     """
 
-    KEY_SQL_CUMULATIVE_DURATION = "cumulative_duration"
-    KEY_SQL_COUNT = "statements_count"
-
     @classmethod
     def register_sqlalchemy_logging_events(
-        cls, logger, duration_threshold_ms=None, statistics_ctx_get=None
+        cls,
+        logger: str | logging.Logger,
+        duration_threshold_ms: int | float | timedelta | None = None,
     ):
         """
         Must be called when logging SQLAlchemy statements and durations.
@@ -169,98 +174,33 @@ class SQLFilter(logging.Filter):
         from sqlalchemy import event
         from sqlalchemy.engine import Engine
 
-        _logger = logger
-        if isinstance(logger, str):
-            _logger = logging.getLogger(logger)
-
-        if duration_threshold_ms is not None and not isinstance(
-            duration_threshold_ms, timedelta
-        ):
-            duration_threshold_ms = timedelta(milliseconds=duration_threshold_ms)
-
-        def duration_ms(conn):
-            if conn:
-                return timedelta(
-                    milliseconds=(
-                        timeit.default_timer() - conn.info["query_start_time"].pop(-1)
-                    )
-                    * 1000.0
-                )
-            else:
-                return timedelta(milliseconds=0)
+        connection_enricher = ConnectionEnricher(logger, duration_threshold_ms)
 
         @event.listens_for(Engine, "before_cursor_execute")
         def before_cursor_execute(
-            conn, cursor, statement, parameters, context, executemany
+            conn: Connection,
+            cursor: "DBAPICursor",
+            statement: str,
+            parameters: dict,
+            context: "ExecutionContext",
+            executemany: bool,
         ):
-            if conn:
-                conn.info.setdefault("query_start_time", []).append(
-                    timeit.default_timer()
-                )
+            connection_enricher.start(conn)
 
         @event.listens_for(Engine, "after_cursor_execute")
         def after_cursor_execute(
-            conn, cursor, statement, parameters, context, executemany
+            conn: Connection,
+            cursor: "DBAPICursor",
+            statement: str,
+            parameters: dict,
+            context: "ExecutionContext",
+            executemany: bool,
         ):
-            statement_duration = duration_ms(conn)
-
-            warned = False
-            if (
-                duration_threshold_ms is not None
-                and statement_duration >= duration_threshold_ms
-            ):
-                _logger.warning(
-                    "Detected SQL query running longer than {:.2f} ms! ".format(
-                        duration_threshold_ms.total_seconds() * 1000
-                    ),
-                    extra={
-                        "sql_statement": str(statement),
-                        "sql_parameters": str(parameters),
-                        "sql_duration_ms": statement_duration.total_seconds() * 1000,
-                    },
-                )
-                warned = True
-
-            if not warned and statement_duration is not None:
-                _logger.debug(
-                    "",
-                    extra={
-                        "sql_statement": str(statement),
-                        "sql_parameters": str(parameters),
-                        "sql_duration_ms": statement_duration.total_seconds() * 1000,
-                    },
-                )
-
-            if statistics_ctx_get:
-                try:
-                    data = statistics_ctx_get()
-                    data.setdefault(cls.KEY_SQL_CUMULATIVE_DURATION, timedelta())
-                    data.setdefault(cls.KEY_SQL_COUNT, 0)
-                    data[cls.KEY_SQL_CUMULATIVE_DURATION] += statement_duration
-                    data[cls.KEY_SQL_COUNT] += 1
-
-                except Exception:
-                    _logger.error("Failed to collect SQL statistics!", exc_info=True)
+            connection_enricher.end(conn, cursor, statement, parameters)
 
         @event.listens_for(Engine, "handle_error")
         def receive_handle_error(exception_context):
-            msg = "SQL engine exception detected."
-            try:
-                msg = msg + " " + str(exception_context.original_exception).strip()
-            except Exception:
-                msg = "SQL engine exception detected. "
-
-            _logger.critical(
-                msg,
-                extra={
-                    "sql_statement": str(exception_context.statement),
-                    "sql_parameters": str(exception_context.parameters),
-                    "sql_duration_ms": duration_ms(
-                        exception_context.connection
-                    ).total_seconds()
-                    * 1000,
-                },
-            )
+            connection_enricher.error(exception_context)
 
     def __init__(
         self,
@@ -270,20 +210,171 @@ class SQLFilter(logging.Filter):
         *args,
         **kwargs,
     ):
+        self.enricher = RecordEnricher(
+            colorize_queries, multiline_queries, shorten_logs
+        )
+        super().__init__(*args, **kwargs)
+
+    def filter(self, record: logging.LogRecord):
+        self.enricher.add_attributes(record)
+        return super().filter(record)
+
+
+class ConnectionEnricher:
+    _ATTR_START_TIME = "query_start_time"
+
+    def __init__(
+        self,
+        lgr: str | logging.Logger,
+        duration_threshold: int | float | timedelta | None,
+    ):
+        self.lgr: logging.Logger
+        if isinstance(lgr, str):
+            self.lgr = logging.getLogger(lgr)
+        else:
+            self.lgr = lgr
+
+        self.duration_threshold: timedelta | None = None
+        if duration_threshold is not None:
+            if isinstance(duration_threshold, timedelta):
+                self.duration_threshold = duration_threshold
+            else:
+                self.duration_threshold = timedelta(milliseconds=duration_threshold)
+
+    def start(self, conn: Connection | None):
+        if conn:
+            conn.info.setdefault(self._ATTR_START_TIME, []).append(
+                timeit.default_timer()
+            )
+
+    def end(
+        self, conn: Connection, cursor: "DBAPICursor", statement: str, parameters: dict
+    ):
+        statement_duration = self._execution_duration(conn)
+        FlaskSQLStats.incr_stats(self.lgr, statement_duration)
+
+        compiled = None
+        try:
+            compiled = cursor.mogrify(statement, parameters).decode()
+        except Exception:
+            compiled = None
+
+        warned = False
+        if (
+            self.duration_threshold is not None
+            and statement_duration >= self.duration_threshold
+        ):
+            self.lgr.warning(
+                "Detected SQL query running longer than {:.2f} ms! ".format(
+                    self.duration_threshold.total_seconds() * 1000
+                ),
+                extra={
+                    RecordEnricher.ATTR_DATA: SQLRecordedQuery(
+                        statement=str(statement),
+                        parameters=parameters,
+                        duration=statement_duration,
+                        compiled=compiled,
+                    )
+                },
+            )
+            warned = True
+
+        if not warned and statement_duration is not None:
+            self.lgr.debug(
+                "",
+                extra={
+                    RecordEnricher.ATTR_DATA: SQLRecordedQuery(
+                        statement=str(statement),
+                        parameters=parameters,
+                        duration=statement_duration,
+                        compiled=compiled,
+                    )
+                },
+            )
+
+    def error(self, exception_context):
+        msg = "SQL engine exception detected."
+
+        try:
+            msg = msg + " " + str(exception_context.original_exception).strip()
+        except Exception:
+            msg = "SQL engine exception detected. "
+
+        self.lgr.critical(
+            msg,
+            extra={
+                RecordEnricher.ATTR_DATA: SQLRecordedQuery(
+                    statement=str(exception_context.statement),
+                    parameters=exception_context.parameters,
+                    duration=self._execution_duration(exception_context.connection),
+                )
+            },
+        )
+
+    @classmethod
+    def _execution_duration(cls, conn: Connection | None) -> timedelta:
+        data: list[float] = getattr(conn, "info", dict()).get(cls._ATTR_START_TIME, [])
+        started_at = data.pop(-1) if data else 0
+        return timedelta(milliseconds=(timeit.default_timer() - started_at) * 1000.0)
+
+
+@dataclass
+class SQLRecordedQuery:
+    statement: str
+    parameters: dict
+    duration: timedelta
+    compiled: str | None = None
+    duration_ms: float = field(init=False, default=0)
+
+    def __post_init__(self):
+        td = None
+        if isinstance(self.duration, (int, float, str)):
+            td = timedelta(microseconds=float(self.duration))
+        elif isinstance(self.duration, timedelta):
+            td = self.duration
+        else:
+            td = timedelta()
+        self.duration_ms = td.total_seconds() * 1000
+
+
+class RecordEnricher:
+    ATTR_DATA = "_sql"
+    ATTR_SQL = "sql"
+    ATTR_DURATION = "sql_duration"
+
+    def __init__(
+        self, colorize_queries=False, multiline_queries=False, shorten_logs=True
+    ):
         self.colorize_queries = colorize_queries
         self.multiline_queries = multiline_queries
         self.shorten_logs = shorten_logs
-        super().__init__(*args, **kwargs)
 
-    def filter(self, record):
-        sql = (
-            # SQLAlchemy
-            getattr(record, "sql_statement", None)
-            # Django
-            or getattr(record, "sql", None)
-            or ""
-        )
+    def add_attributes(self, record: logging.LogRecord):
+        setattr(record, self.ATTR_SQL, "")
+        setattr(record, self.ATTR_DURATION, "")
 
+        recorded_query: SQLRecordedQuery | None = getattr(record, self.ATTR_DATA, None)
+        if not recorded_query:
+            return
+
+        query_str = self._format_query_string(recorded_query)
+        setattr(record, self.ATTR_SQL, query_str)
+
+        duration_str = self._format_duration_string(recorded_query)
+        setattr(record, self.ATTR_DURATION, duration_str)
+
+    def _format_query_string(self, recorded_query: SQLRecordedQuery) -> str:
+        if recorded_query.compiled:
+            sql = self._format_compiled(recorded_query.compiled)
+            return sql
+
+        else:
+            sql = self._format_statement_and_params(
+                recorded_query.statement, recorded_query.parameters
+            )
+            return sql
+
+    def _maybe_multiline(self, sql: str) -> str:
         if sql:
             if self.multiline_queries:
                 sql = sqlparse.format(sql, reindent=True, keyword_case="upper").strip()
@@ -298,47 +389,124 @@ class SQLFilter(logging.Filter):
             if sql and not sql.endswith(";"):
                 sql = sql + ";"
 
-        if hasattr(record, "sql_parameters"):
-            params_dict = record.sql_parameters
-            params = json.dumps(record.sql_parameters, cls=JsonEncoder).strip()
+        return sql or ""
+
+    def _maybe_colorized(self, sql: str) -> str:
+        if self.colorize_queries and sql:
+            sql = pygments.highlight(
+                sql, SqlLexer(), Terminal256Formatter(style="monokai")
+            ).strip()
+
+        return sql or ""
+
+    def _format_compiled(self, compiled: str | None) -> str:
+        sql = compiled or ""
+
+        sql = self._maybe_multiline(sql)
+        sql = self._maybe_colorized(sql)
+
+        if self.shorten_logs:
+            (sql or " SQL")[:1300]
+
+        return sql
+
+    def _format_statement_and_params(
+        self, statement: str | None, parameters: dict | None
+    ) -> str:
+        sql: str = statement or ""
+
+        sql = self._maybe_multiline(sql)
+        sql = self._maybe_colorized(sql)
+
+        if parameters:
+            params_dict = parameters
+            params = json.dumps(params_dict, cls=JsonEncoder).strip()
         else:
             params_dict = {}
             params = ""
 
-        if self.colorize_queries:
-            if sql:
-                sql = pygments.highlight(
-                    sql, SqlLexer(), Terminal256Formatter(style="monokai")
-                ).strip()
-
-            if params:
-                params = pygments.highlight(
-                    params,
-                    pygments.lexers.get_lexer_for_mimetype("application/json"),
-                    Terminal256Formatter(style="monokai"),
-                ).strip()
+        if self.colorize_queries and params:
+            params = pygments.highlight(
+                params,
+                pygments.lexers.get_lexer_for_mimetype("application/json"),
+                Terminal256Formatter(style="monokai"),
+            ).strip()
 
         # rsyslogd limits to 2048 bytes per message by default
         # We prefer to lose some params when shortening log line than to lose some SQL
-        # statement content. Either way, it is not possible to guarnatee both will
+        # statement content. Either way, it is not possible to guarantee both will
         # be fully logged in all contexts and log sinks
         if params and params_dict:
             if self.shorten_logs:
-                record.sql = "{} with params {}".format(sql[:1500], params[:500])
+                sql = "{} with params {}".format(sql[:1500], params[:500])
             else:
                 # params should always be shortened because they can be huge in when
                 # for exmple we are inserting into PostgreSQL JSONB columns
-                record.sql = "{} with params {}".format(sql, params[:500])
+                sql = "{} with params {}".format(sql, params[:500])
         else:
-            record.sql = (sql or " SQL")[:1300]
+            sql = (sql or " SQL")[:1300]
 
-        duration = getattr(record, "sql_duration_ms", None) or getattr(
-            record, "duration", None
-        )
+        return sql
 
-        if duration:
-            record.sql_duration = "{:.2f} ms".format(duration)
-        else:
-            record.sql_duration = "_.___ ms"
+    def _format_duration_string(self, recorded_query: SQLRecordedQuery) -> str:
+        dur = "_.___ ms"
+        if recorded_query.duration_ms:
+            dur = "{:.2f} ms".format(recorded_query.duration_ms)
+        return dur
 
-        return super().filter(record)
+
+class FlaskSQLStats:
+    _KEY_REQUEST_SQL_STATS = "sqlalchemy_statistics"
+    _KEY_SQL_CUMULATIVE_DURATION = "cumulative_duration"
+    _KEY_SQL_COUNT = "statements_count"
+
+    @classmethod
+    def get_statements_count(cls) -> int:
+        stats = cls.get()
+        if stats:
+            return stats[cls._KEY_SQL_COUNT] or 0
+        return 0
+
+    @classmethod
+    def get_cumulative_statements_duration(cls) -> timedelta:
+        stats = FlaskSQLStats.get()
+        if stats:
+            return stats[cls._KEY_SQL_CUMULATIVE_DURATION]
+        return timedelta()
+
+    @classmethod
+    def open(cls) -> dict | None:
+        if HAS_FLASK:
+            return flask.g.setdefault(cls._KEY_REQUEST_SQL_STATS, dict())
+
+    @classmethod
+    def close(cls):
+        if HAS_FLASK:
+            flask.g.pop(cls._KEY_REQUEST_SQL_STATS)
+
+    @classmethod
+    def get(cls) -> dict | None:
+        if HAS_FLASK:
+            return flask.g.get(cls._KEY_REQUEST_SQL_STATS)
+
+    @classmethod
+    def incr_stats(cls, lgr: logging.Logger, statement_duration: timedelta):
+        if HAS_FLASK:
+            try:
+                data = cls.open()
+                data.setdefault(cls._KEY_SQL_CUMULATIVE_DURATION, timedelta())
+                data.setdefault(cls._KEY_SQL_COUNT, 0)
+                data[cls._KEY_SQL_CUMULATIVE_DURATION] += statement_duration
+                data[cls._KEY_SQL_COUNT] += 1
+
+            except Exception:
+                lgr.error("Failed to collect SQL statistics!", exc_info=True)
+
+
+class JsonEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, (date, datetime)):
+            return o.isoformat()
+        if isinstance(o, enum.Enum):
+            return o.name
+        return super().default(o)
