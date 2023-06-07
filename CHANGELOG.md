@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1 (2023-06-07)
+
+- feat: SQLFiler can now sometimes print real SQL instead of query string + params
+
 ## 0.8.0 (2023-02-24)
 
 - feat: replaced logging formatters with `PrettyFormatter`
