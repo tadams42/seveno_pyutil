@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.3 (2023-06-26)
+
+- build: added GitHub action for publishing releases to PyPi
+
 ## 0.8.2 (2023-06-07)
 
 - feat: prettier format for multiline SQL in SQLFilter

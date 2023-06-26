@@ -131,7 +131,16 @@ class SQLFilter(logging.Filter):
                         "may_app_sql_logger", 100
                     )
 
-                    db.session.execute("select * from books")
+                    app = flask.Flask()
+
+                    @app.before_request
+                    def log_current_request():
+                        FlaskSQLStats.open()
+
+                        @flask.after_this_request
+                        def log_current_response(response):
+                            FlaskSQLStats.close()
+                            return response
         """
 
         from sqlalchemy import event
