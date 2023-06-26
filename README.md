@@ -26,5 +26,5 @@ py.test
 Install with extra dev packages
 
 ~~~sh
-pip install -e .[dev]
+pip install -e .[dev,tests]
 ~~~
