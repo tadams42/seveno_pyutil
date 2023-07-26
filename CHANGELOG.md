@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.4 (2023-07-26)
+
+- fix: don't rely on json to be able to encode SQL parameters
+
 ## 0.8.3 (2023-06-26)
 
 - build: added GitHub action for publishing releases to PyPi

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seveno-pyutil"
-version = "0.8.3"
+version = "0.8.4"
 description = "Various unsorted Python utilities"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -43,23 +43,7 @@ Documentation = "https://seveno-pyutil.readthedocs.io/en/latest/"
 
 
 [project.optional-dependencies]
-dev = [
-	"black",
-	"bump2version",
-	"check-manifest",
-	"coverage",
-	"factory-boy",
-	"faker",
-	"furo",
-	"ipython",
-	"isort",
-	"myst-parser",
-	"pytest-spec",
-	"pytest",
-	"sphinx-copybutton",
-	"sphinx",
-	"twine",
-]
+dev = ["black", "bump2version", "ipython", "isort", "rich", "pre-commit"]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
 tests = [
 	"check-manifest",

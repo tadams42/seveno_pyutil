@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import enum
+import json
 import logging
 import timeit
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
+from decimal import Decimal
+from pathlib import Path
 from typing import TYPE_CHECKING, Callable, ClassVar, Final
+from uuid import UUID
 
 import pygments
 import sqlparse
@@ -13,11 +17,6 @@ import sqlparse
 # from pygments.formatters import TerminalTrueColorFormatter
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import SqlLexer
-
-try:
-    import simplejson as json
-except Exception:
-    import json
 
 HAS_FLASK = False
 try:
@@ -403,7 +402,7 @@ class RecordEnricher:
 
         if parameters:
             params_dict = parameters
-            params = json.dumps(params_dict, cls=JsonEncoder).strip()
+            params = json.dumps(params_dict, cls=JSONEncoder).strip()
         else:
             params_dict = {}
             params = ""
@@ -486,10 +485,15 @@ class FlaskSQLStats:
                 lgr.error("Failed to collect SQL statistics!", exc_info=True)
 
 
-class JsonEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, (date, datetime)):
-            return o.isoformat()
-        if isinstance(o, enum.Enum):
-            return o.name
-        return super().default(o)
+class JSONEncoder(json.JSONEncoder):
+    _DATES_TIMES = (date, datetime)
+
+    def default(self, obj):
+        if isinstance(obj, self._DATES_TIMES):
+            return obj.isoformat()
+        elif isinstance(obj, enum.Enum):
+            return obj.name
+        elif isinstance(obj, (UUID, Decimal, Path)):
+            return str(obj)
+        # return json.JSONEncoder.default(self, obj)
+        return str(obj)
