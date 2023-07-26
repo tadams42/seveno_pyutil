@@ -43,23 +43,7 @@ Documentation = "https://seveno-pyutil.readthedocs.io/en/latest/"
 
 
 [project.optional-dependencies]
-dev = [
-	"black",
-	"bump2version",
-	"check-manifest",
-	"coverage",
-	"factory-boy",
-	"faker",
-	"furo",
-	"ipython",
-	"isort",
-	"myst-parser",
-	"pytest-spec",
-	"pytest",
-	"sphinx-copybutton",
-	"sphinx",
-	"twine",
-]
+dev = ["black", "bump2version", "ipython", "isort", "rich", "pre-commit"]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
 tests = [
 	"check-manifest",
