@@ -2,13 +2,12 @@ graft docs
 graft src
 graft tests
 
-include .editorconfig
-
 include CHANGELOG.md
 include LICENSE
 include README.md
+include .pre-commit-config.yaml
 
-include .travis.yml .readthedocs.yml .bumpversion.cfg
+include .readthedocs.yml .bumpversion.cfg
 
 global-exclude *.py[cod] __pycache__ *.so *.dylib
 global-exclude .pytest_cache .pytest_cache/* .mypy_cache/*
