@@ -4,11 +4,12 @@ import enum
 import json
 import logging
 import timeit
+import warnings
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, ClassVar, Final
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 import pygments
@@ -17,6 +18,23 @@ import sqlparse
 # from pygments.formatters import TerminalTrueColorFormatter
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import SqlLexer
+
+HAS_PSYCOPG2 = False
+
+try:
+    import psycopg2
+
+    HAS_PSYCOPG2 = True
+except Exception:
+    pass
+
+HAS_PSYCOPG3 = False
+try:
+    import psycopg
+
+    HAS_PSYCOPG3 = True
+except Exception:
+    pass
 
 HAS_FLASK = False
 try:
@@ -224,11 +242,7 @@ class ConnectionEnricher:
         statement_duration = self._execution_duration(conn)
         FlaskSQLStats.incr_stats(self.lgr, statement_duration)
 
-        compiled = None
-        try:
-            compiled = cursor.mogrify(statement, parameters).decode()
-        except Exception:
-            compiled = None
+        compiled = self._compiled_sql(conn, cursor, statement, parameters)
 
         warned = False
         if (
@@ -281,6 +295,32 @@ class ConnectionEnricher:
                 )
             },
         )
+
+    @classmethod
+    def _compiled_sql(cls, conn, cursor, statement, parameters):
+        compiled = None
+
+        if HAS_PSYCOPG2:
+            try:
+                compiled = cursor.mogrify(statement, parameters).decode()
+            except Exception:
+                pass
+
+        elif HAS_PSYCOPG3:
+            try:
+                cc = psycopg.ClientCursor(connection=conn.connection.dbapi_connection)
+                compiled = cc.mogrify(statement, parameters)
+            except Exception:
+                pass
+
+        # Other drivers would need their own implementation. Since we are not using
+        # them, we don't provide one. Returning None here means SQL will be logged
+        # separately from it's parameters, ie.
+        #   sql=SELECT id, foo FROM foos where foo = %(bar)s; with params {"bar": baz}
+        # instead of
+        #   sql=SELECT id, foo FROM foos where foo = 'baz'
+
+        return compiled
 
     @classmethod
     def _execution_duration(cls, conn: Connection | None) -> timedelta:
