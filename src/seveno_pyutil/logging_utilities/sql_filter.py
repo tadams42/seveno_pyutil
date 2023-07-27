@@ -4,7 +4,6 @@ import enum
 import json
 import logging
 import timeit
-import warnings
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from decimal import Decimal
@@ -44,20 +43,19 @@ try:
 except Exception:
     pass
 
-if TYPE_CHECKING:
-    from sqlalchemy.engine import Connection, Engine
-
 
 class SQLFilter(logging.Filter):
     """
     Filter for SQLAlchemy SQL loggers. Optionally reformats and colorizes queries.
 
-    To use it with SQLAlchemy:
+    To use it with Flask and SQLAlchemy:
 
-    - add it to ``sqlalchemy.engine`` logger and call
-      `:meth:register_sqlalchemy_logging_events`
+    - configure Flask app
+    - configure SQLAlchemy engine events (call `:meth:register_sqlalchemy_logging_events`)
+    - configure logging
 
-    Supports following logging placeholders:
+    All three steps are presented in example below. After it has been configured,
+    provides following logging placeholders:
 
     +-------------------+----------------------------------------------+
     | placeholder       | description                                  |
@@ -80,110 +78,98 @@ class SQLFilter(logging.Filter):
         import logging
         from logging.config import dictConfig
 
-        from seveno_pyutil import SQLFilter
+        import flask
+        from seveno_pyutil import FlaskSQLStats, SQLFilter
 
-        try:
-            import sqlalchemy
-            SQLFilter.register_sqlalchemy_logging_events('myapp.db')
-        except ImportError:
-            pass
-
-        dictConfig({
-            'version': 1,
-            'disable_existing_loggers': False,
-            'formatters': {
-                'sqlalchemy_sql': {'format': '(%(sql_duration)s) %(sql)s %(message)s'}
-            },
-            'filters': {
-                'colored_sql': {
-                    '()': 'seveno_pyutil.SQLFilter'
-                    'colorize_queries': True,
-                    'multiline_queries': True,
-                }
-            },
-            'handlers': {
-                'console_sqlalchemy': {
-                    'class': 'logging.StreamHandler',
-                    'level': 'DEBUG',
-                    'formatter': 'sqlalchemy_sql',
-                    'filters': ['colored_sql'],
-                    'stream': 'ext://sys.stdout'
-                }
-            },
-            'loggers': {
-                'myapp.db': {
-                    'level': 'DEBUG',
-                    'propagate': False,
-                    'handlers': ['console_sqlalchemy']
-                }
+        dictConfig(
+            {
+                "version": 1,
+                "disable_existing_loggers": False,
+                "formatters": {
+                    "app": {"format": "lvl=%(levelname)s msg=%(message)s"},
+                    "app.db": {
+                        "format": "lvl=%(levelname)s, sqld=%(sql_duration)s sql=%(sql)s msg=%(message)s"
+                    },
+                },
+                "filters": {
+                    "colored_sql": {
+                        "()": "seveno_pyutil.SQLFilter",
+                        "colorize_queries": True,
+                        "multiline_queries": True,
+                    }
+                },
+                "handlers": {
+                    "console": {
+                        "class": "logging.StreamHandler",
+                        "level": "DEBUG",
+                        "formatter": "app",
+                        "stream": "ext://sys.stdout",
+                    },
+                    "console_sqlalchemy": {
+                        "class": "logging.StreamHandler",
+                        "level": "DEBUG",
+                        "formatter": "db",
+                        "filters": ["colored_sql"],
+                        "stream": "ext://sys.stdout",
+                    },
+                },
+                "loggers": {
+                    "myapp": {
+                        "level": "INFO",
+                        "propagate": False,
+                        "handlers": ["console"],
+                    },
+                    "myapp.db": {
+                        "level": "DEBUG",
+                        "propagate": False,
+                        "handlers": ["console_sqlalchemy"],
+                    },
+                },
             }
-        })
+        )
 
+
+        class RequestLoggingMiddleware:
+            def __init__(self, sql_logger_name, app=None):
+                self.sql_logger_name = sql_logger_name
+                if app:
+                    self.init_app(app)
+
+            def init_app(self, app: flask.Flask):
+                SQLFilter.register_sqlalchemy_logging_events(self.sql_logger_name)
+
+                @app.before_request
+                def log_current_request():
+                    FlaskSQLStats.open()
+
+                    @flask.after_this_request
+                    def log_current_response(response):
+                        logger.info("Some HTTP request was processed :)")
+                        FlaskSQLStats.close()
+                        return response
+
+
+        logger = logging.getLogger(__name__)
+        app = flask.Flask(__name__)
+        RequestLoggingMiddleware("myapp.db").init_app(app)
     """
 
     @classmethod
-    def register_sqlalchemy_logging_events(
-        cls,
-        logger: str | logging.Logger,
-        duration_threshold_ms: int | float | timedelta | None = None,
-    ):
-        """
-        Must be called when logging SQLAlchemy statements and durations.
-
-        Arguments:
-            logger: name of logger or logging.Logger instance that will be used to log
-                SQL messages.
-            duration_threshold_ms: If given, only queries lasting longer than this
-                threshold will be logged.
-            statistics_ctx_get: callable that returns mutable dict. If given, then each
-                time SQL query is executes, this dict will be updated.
-
-                It can be used for example in Flask to track SQL execution statistics
-                during one HTTP request::
-
-                    import flask
-                    from seveno_pyutil import FlaskSQLStats, SQLFilter
-
-                    SQLFilter.register_sqlalchemy_logging_events(
-                        "may_app_sql_logger", 100
-                    )
-
-                    app = flask.Flask()
-
-                    @app.before_request
-                    def log_current_request():
-                        FlaskSQLStats.open()
-
-                        @flask.after_this_request
-                        def log_current_response(response):
-                            FlaskSQLStats.close()
-                            return response
-        """
-
+    def register_sqlalchemy_logging_events(cls, logger: str | logging.Logger):
         from sqlalchemy import event
         from sqlalchemy.engine import Engine
 
-        connection_enricher = ConnectionEnricher(logger, duration_threshold_ms)
+        connection_enricher = ConnectionEnricher(logger)
 
         @event.listens_for(Engine, "before_cursor_execute")
         def before_cursor_execute(
-            conn: Connection,
-            cursor: "DBAPICursor",
-            statement: str,
-            parameters: dict,
-            context: "ExecutionContext",
-            executemany: bool,
+            conn, cursor, statement: str, parameters: dict, context, executemany: bool
         ):
             connection_enricher.start(conn)
 
         @event.listens_for(Engine, "after_cursor_execute")
         def after_cursor_execute(
-            conn: Connection,
-            cursor: "DBAPICursor",
-            statement: str,
-            parameters: dict,
-            context: "ExecutionContext",
-            executemany: bool,
+            conn, cursor, statement: str, parameters: dict, context, executemany: bool
         ):
             connection_enricher.end(conn, cursor, statement, parameters)
 
@@ -212,23 +198,12 @@ class SQLFilter(logging.Filter):
 class ConnectionEnricher:
     _ATTR_START_TIME = "query_start_time"
 
-    def __init__(
-        self,
-        lgr: str | logging.Logger,
-        duration_threshold: int | float | timedelta | None,
-    ):
+    def __init__(self, lgr: str | logging.Logger):
         self.lgr: logging.Logger
         if isinstance(lgr, str):
             self.lgr = logging.getLogger(lgr)
         else:
             self.lgr = lgr
-
-        self.duration_threshold: timedelta | None = None
-        if duration_threshold is not None:
-            if isinstance(duration_threshold, timedelta):
-                self.duration_threshold = duration_threshold
-            else:
-                self.duration_threshold = timedelta(milliseconds=duration_threshold)
 
     def start(self, conn: Connection | None):
         if conn:
@@ -244,38 +219,17 @@ class ConnectionEnricher:
 
         compiled = self._compiled_sql(conn, cursor, statement, parameters)
 
-        warned = False
-        if (
-            self.duration_threshold is not None
-            and statement_duration >= self.duration_threshold
-        ):
-            self.lgr.warning(
-                "Detected SQL query running longer than {:.2f} ms! ".format(
-                    self.duration_threshold.total_seconds() * 1000
-                ),
-                extra={
-                    RecordEnricher.ATTR_DATA: SQLRecordedQuery(
-                        statement=str(statement),
-                        parameters=parameters,
-                        duration=statement_duration,
-                        compiled=compiled,
-                    )
-                },
-            )
-            warned = True
-
-        if not warned and statement_duration is not None:
-            self.lgr.debug(
-                "",
-                extra={
-                    RecordEnricher.ATTR_DATA: SQLRecordedQuery(
-                        statement=str(statement),
-                        parameters=parameters,
-                        duration=statement_duration,
-                        compiled=compiled,
-                    )
-                },
-            )
+        self.lgr.debug(
+            "",
+            extra={
+                RecordEnricher.ATTR_DATA: SQLRecordedQuery(
+                    statement=str(statement),
+                    parameters=parameters,
+                    duration=statement_duration,
+                    compiled=compiled,
+                )
+            },
+        )
 
     def error(self, exception_context):
         msg = "SQL engine exception detected."
