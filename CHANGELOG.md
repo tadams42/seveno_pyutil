@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.4 (2023-07-28)
+
+- feat: removed SQL duration threshold warning
+- feat: support logging of compiled SQL statements on psycopg3
+
 ## 0.8.4 (2023-07-26)
 
 - fix: don't rely on json to be able to encode SQL parameters
