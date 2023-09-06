@@ -5,14 +5,16 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-from datetime import datetime
+from datetime import datetime, timezone
 
 author = "tadams42"
 project = "seveno-pyutil"
 copyright = (
-    ", ".join(str(y) for y in range(2017, datetime.now().year + 1)) + ", " + author
+    ", ".join(str(y) for y in range(2017, datetime.now(tz=timezone.utc).year + 1))
+    + ", "
+    + author
 )
-release = "0.8.5"
+release = "0.9.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
