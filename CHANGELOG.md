@@ -2,8 +2,10 @@
 
 ## 0.9.0 (unreleased)
 
-- removed `silent_create_dirs`, `silent_remove`, `switch_extension`
-- integrated `ruff`
+- fix: removed `silent_create_dirs`, `silent_remove`, `switch_extension`
+- build: integrated `ruff`
+- fix: running apps using `PrettyFormatter` inside of Docker containers caused random
+  warning "not a TTY" messages even though no log coloring was configured
 
 ## 0.8.4 (2023-07-28)
 

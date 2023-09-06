@@ -1,10 +1,24 @@
-import logging
+from __future__ import annotations
 
-import colorlog
+import logging
+from typing import IO, TYPE_CHECKING, Any
+
+from colorlog import ColoredFormatter as ColoredFormatterBase
 from pretty_traceback.formatting import exc_to_traceback_str
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
-class PrettyFormatter(colorlog.ColoredFormatter):
+    from colorlog.formatter import LogColors, SecondaryLogColors
+
+
+class ColoredFormatter(ColoredFormatterBase):
+    def formatException(self, ei) -> str:
+        _, exc_value, traceback = ei
+        return exc_to_traceback_str(exc_value, traceback, color=True)
+
+
+class PrettyFormatter(logging.Formatter):
     """
     Logging formatter for pretty logs:
 
@@ -78,28 +92,51 @@ class PrettyFormatter(colorlog.ColoredFormatter):
     or check docs for `colorlog`.
     """
 
-    def __init__(
-        self, *args, force_single_line: bool = True, colorize: bool = False, **kwargs
+    def __init__(  # noqa: PLR0913
+        self,
+        fmt: str | None = None,
+        datefmt: str | None = None,
+        style: logging._FormatStyle = "%",
+        validate: bool = True,  # noqa: FBT001, FBT002
+        *,
+        defaults: Mapping[str, Any] | None = None,
+        force_single_line: bool = True,
+        colorize: bool = False,
+        log_colors: LogColors | None = None,
+        secondary_log_colors: SecondaryLogColors | None = None,
+        reset: bool = True,
+        stream: IO | None = None,
     ):
+        super().__init__(
+            fmt=fmt, datefmt=datefmt, style=style, validate=validate, defaults=defaults
+        )
         self.force_single_line = force_single_line
         self.colorize = colorize
-
-        # Adjust any base class arguments that might had slipped in
-        kwargs.pop("force_color", None)
-        kwargs.pop("no_color", None)
-        if not self.colorize:
-            kwargs["no_color"] = True
-        else:
-            kwargs["force_color"] = True
-
-        super().__init__(*args, **kwargs)
+        self._color_formatter: ColoredFormatter | None = None
+        if self.colorize:
+            self._color_formatter = ColoredFormatter(
+                fmt=fmt,
+                datefmt=datefmt,
+                style=style,
+                validate=validate,
+                defaults=defaults,
+                log_colors=log_colors,
+                secondary_log_colors=secondary_log_colors,
+                reset=reset,
+                stream=stream,
+                force_color=self.colorize,
+                no_color=not self.colorize,
+            )
 
     def formatException(self, ei) -> str:
         _, exc_value, traceback = ei
         return exc_to_traceback_str(exc_value, traceback, color=self.colorize)
 
     def format(self, record: logging.LogRecord) -> str:
-        retv = super().format(record)
+        if self.colorize and self._color_formatter:
+            retv = self._color_formatter.format(record)
+        else:
+            retv = super().format(record)
 
         if self.force_single_line:
             return retv.replace("\n", "\\n")

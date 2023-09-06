@@ -191,7 +191,9 @@ class SQLFilter(logging.Filter):
         **kwargs,
     ):
         self.enricher = RecordEnricher(
-            colorize_queries, multiline_queries, shorten_logs
+            colorize_queries=colorize_queries,
+            multiline_queries=multiline_queries,
+            shorten_logs=shorten_logs,
         )
         super().__init__(*args, **kwargs)
 
