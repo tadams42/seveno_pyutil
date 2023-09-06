@@ -28,7 +28,6 @@ authors = [{ name = "Tomislav Adamic", email = "tomislav.adamic@gmail.com" }]
 dependencies = [
 	"colorlog",
 	"holidays",
-	"marshmallow>=3",
 	"pretty-traceback",
 	"pygments",
 	"python-dateutil>=2.6.0",
