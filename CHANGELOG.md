@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 (2023-09-06)
+
+- fix: removed `silent_create_dirs`, `silent_remove`, `switch_extension`
+- fix: running apps using `PrettyFormatter` inside of Docker containers caused random
+  warning "not a TTY" messages even though no log coloring was configured
+- build: integrated `ruff`
+- removed `marshmallow` as dependency
+
 ## 0.8.4 (2023-07-28)
 
 - feat: removed SQL duration threshold warning

@@ -1,26 +1,27 @@
+import contextlib
 import re
 from datetime import date, datetime, timedelta, timezone, tzinfo
-from typing import Optional, Union
+from typing import TypeAlias
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import holidays
 
-TimeZoneLike = Union[str, int, timedelta, tzinfo, ZoneInfo, timezone]
+TimeZoneLike: TypeAlias = str | int | timedelta | tzinfo | ZoneInfo | timezone
 
 CROATIAN_HOLIDAYS = holidays.HR()
 _ONE_DAY = timedelta(days=1)
 _ISO_8601_OFFSET = re.compile(r"([+-]?)([0-9]{2})[:]?([0-9]{0,2})")
 
 
-def next_working_day(from_: Optional[date] = None, holidays_calendar=CROATIAN_HOLIDAYS):
+def next_working_day(from_: date | None = None, holidays_calendar=CROATIAN_HOLIDAYS):
     """Finds next work day from `from_` or today."""
-    next_day = (from_ or date.today()) + _ONE_DAY
+    next_day = (from_ or datetime.now(tz=timezone.utc).date()) + _ONE_DAY
     while next_day.weekday() in holidays.WEEKEND or next_day in holidays_calendar:
         next_day += _ONE_DAY
     return next_day
 
 
-def timezone_or_offset(from_: Optional[TimeZoneLike]) -> Union[ZoneInfo, timezone]:
+def timezone_or_offset(from_: TimeZoneLike | None) -> ZoneInfo | timezone:  # noqa: C901
     """
     Given ``from_`` creates `datetime.timezone` or `zoneinfo.ZoneInfo` as
     result.
@@ -38,14 +39,12 @@ def timezone_or_offset(from_: Optional[TimeZoneLike]) -> Union[ZoneInfo, timezon
     if from_ is None:
         offset_obj = ZoneInfo("UTC")
 
-    elif isinstance(from_, (ZoneInfo, timezone)):
+    elif isinstance(from_, ZoneInfo | timezone):
         return from_
 
     elif isinstance(from_, str):
-        try:
+        with contextlib.suppress(ZoneInfoNotFoundError, ValueError):
             offset_obj = ZoneInfo(from_)
-        except (ZoneInfoNotFoundError, ValueError):
-            pass
 
         if not offset_obj:
             if from_.strip() in ["Z", ""]:
@@ -63,12 +62,10 @@ def timezone_or_offset(from_: Optional[TimeZoneLike]) -> Union[ZoneInfo, timezon
                     )
 
     elif isinstance(from_, timedelta):
-        offset_obj = timezone(name="{} s".format(from_.total_seconds()), offset=from_)
+        offset_obj = timezone(name=f"{from_.total_seconds()} s", offset=from_)
 
     elif isinstance(from_, int):
-        offset_obj = timezone(
-            name="{} s".format(from_), offset=timedelta(seconds=from_)
-        )
+        offset_obj = timezone(name=f"{from_} s", offset=timedelta(seconds=from_))
 
     elif issubclass(type(from_), tzinfo) or all(
         hasattr(from_, attr_name)
@@ -77,13 +74,13 @@ def timezone_or_offset(from_: Optional[TimeZoneLike]) -> Union[ZoneInfo, timezon
         offset_obj = timezone(name=from_.tzname(None), offset=from_.utcoffset(None))
 
     if offset_obj is None:
-        raise ValueError("Unable to parse time offset: {}".format(from_))
+        raise ValueError(f"Unable to parse time offset: {from_}")
 
     return offset_obj
 
 
 def ensure_tzinfo(
-    val: datetime, tz_or_offset: TimeZoneLike = "UTC", is_dst: bool = False
+    val: datetime, tz_or_offset: TimeZoneLike = "UTC", *, is_dst: bool = False
 ) -> datetime:
     """
     Creates timezone aware datetime object for ``val``.
@@ -115,7 +112,7 @@ def ensure_tzinfo(
         pendulum`` and leave this crap behind to history.
     """
     if not isinstance(val, datetime):
-        raise ValueError(
+        raise ValueError(  # noqa: TRY004
             "Input is not datetime! ensure_tzinfo doesn't parse datetime, you "
             "need to do that beforehand."
         )
@@ -130,9 +127,10 @@ def ensure_tzinfo(
     return val
 
 
-def iter_year_month(
-    start: Union[date, datetime],
-    end: Optional[date] = None,
+def iter_year_month(  # noqa: C901
+    start: date | datetime,
+    end: date | None = None,
+    *,
     include_start: bool = False,
     include_end: bool = False,
 ):
@@ -175,7 +173,7 @@ def iter_year_month(
             val = val.replace(month=val.month + 1)
 
         except ValueError:
-            if val.month == 12:
+            if val.month == 12:  # noqa: PLR2004
                 val = val.replace(year=val.year + 1, month=1)
 
         if val == end:

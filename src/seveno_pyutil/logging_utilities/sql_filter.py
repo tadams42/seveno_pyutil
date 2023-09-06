@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import enum
 import json
 import logging
@@ -8,7 +9,6 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import TYPE_CHECKING
 from uuid import UUID
 
 import pygments
@@ -20,28 +20,23 @@ from pygments.lexers import SqlLexer
 
 HAS_PSYCOPG2 = False
 
-try:
-    import psycopg2
-
+with contextlib.suppress(Exception):
     HAS_PSYCOPG2 = True
-except Exception:
-    pass
 
-HAS_PSYCOPG3 = False
+
+HAS_PSYCOPG3 = True
 try:
     import psycopg
 
-    HAS_PSYCOPG3 = True
 except Exception:
-    pass
+    HAS_PSYCOPG3 = False
 
-HAS_FLASK = False
+HAS_FLASK = True
 try:
     import flask
 
-    HAS_FLASK = True
 except Exception:
-    pass
+    HAS_FLASK = False
 
 
 class SQLFilter(logging.Filter):
@@ -162,14 +157,24 @@ class SQLFilter(logging.Filter):
         connection_enricher = ConnectionEnricher(logger)
 
         @event.listens_for(Engine, "before_cursor_execute")
-        def before_cursor_execute(
-            conn, cursor, statement: str, parameters: dict, context, executemany: bool
+        def before_cursor_execute(  # noqa: PLR0913
+            conn,
+            cursor,
+            statement: str,
+            parameters: dict,
+            context,
+            executemany: bool,  # noqa: FBT001
         ):
             connection_enricher.start(conn)
 
         @event.listens_for(Engine, "after_cursor_execute")
-        def after_cursor_execute(
-            conn, cursor, statement: str, parameters: dict, context, executemany: bool
+        def after_cursor_execute(  # noqa: PLR0913
+            conn,
+            cursor,
+            statement: str,
+            parameters: dict,
+            context,
+            executemany: bool,  # noqa: FBT001
         ):
             connection_enricher.end(conn, cursor, statement, parameters)
 
@@ -179,14 +184,16 @@ class SQLFilter(logging.Filter):
 
     def __init__(
         self,
+        *args,
         colorize_queries=False,
         multiline_queries=False,
         shorten_logs=True,
-        *args,
         **kwargs,
     ):
         self.enricher = RecordEnricher(
-            colorize_queries, multiline_queries, shorten_logs
+            colorize_queries=colorize_queries,
+            multiline_queries=multiline_queries,
+            shorten_logs=shorten_logs,
         )
         super().__init__(*args, **kwargs)
 
@@ -205,15 +212,13 @@ class ConnectionEnricher:
         else:
             self.lgr = lgr
 
-    def start(self, conn: Connection | None):
+    def start(self, conn):
         if conn:
             conn.info.setdefault(self._ATTR_START_TIME, []).append(
                 timeit.default_timer()
             )
 
-    def end(
-        self, conn: Connection, cursor: "DBAPICursor", statement: str, parameters: dict
-    ):
+    def end(self, conn, cursor, statement: str, parameters: dict):
         statement_duration = self._execution_duration(conn)
         FlaskSQLStats.incr_stats(self.lgr, statement_duration)
 
@@ -255,17 +260,13 @@ class ConnectionEnricher:
         compiled = None
 
         if HAS_PSYCOPG2:
-            try:
+            with contextlib.suppress(Exception):
                 compiled = cursor.mogrify(statement, parameters).decode()
-            except Exception:
-                pass
 
         elif HAS_PSYCOPG3:
-            try:
+            with contextlib.suppress(Exception):
                 cc = psycopg.ClientCursor(connection=conn.connection.dbapi_connection)
                 compiled = cc.mogrify(statement, parameters)
-            except Exception:
-                pass
 
         # Other drivers would need their own implementation. Since we are not using
         # them, we don't provide one. Returning None here means SQL will be logged
@@ -277,8 +278,8 @@ class ConnectionEnricher:
         return compiled
 
     @classmethod
-    def _execution_duration(cls, conn: Connection | None) -> timedelta:
-        data: list[float] = getattr(conn, "info", dict()).get(cls._ATTR_START_TIME, [])
+    def _execution_duration(cls, conn) -> timedelta:
+        data: list[float] = getattr(conn, "info", {}).get(cls._ATTR_START_TIME, [])
         started_at = data.pop(-1) if data else 0
         return timedelta(milliseconds=(timeit.default_timer() - started_at) * 1000.0)
 
@@ -293,7 +294,7 @@ class SQLRecordedQuery:
 
     def __post_init__(self):
         td = None
-        if isinstance(self.duration, (int, float, str)):
+        if isinstance(self.duration, int | float | str):
             td = timedelta(microseconds=float(self.duration))
         elif isinstance(self.duration, timedelta):
             td = self.duration
@@ -308,7 +309,7 @@ class RecordEnricher:
     ATTR_DURATION = "sql_duration"
 
     def __init__(
-        self, colorize_queries=False, multiline_queries=False, shorten_logs=True
+        self, *, colorize_queries=False, multiline_queries=False, shorten_logs=True
     ):
         self.colorize_queries = colorize_queries
         self.multiline_queries = multiline_queries
@@ -330,14 +331,11 @@ class RecordEnricher:
 
     def _format_query_string(self, recorded_query: SQLRecordedQuery) -> str:
         if recorded_query.compiled:
-            sql = self._format_compiled(recorded_query.compiled)
-            return sql
+            return self._format_compiled(recorded_query.compiled)
 
-        else:
-            sql = self._format_statement_and_params(
-                recorded_query.statement, recorded_query.parameters
-            )
-            return sql
+        return self._format_statement_and_params(
+            recorded_query.statement, recorded_query.parameters
+        )
 
     _SQL_FORMAT_OPTS = {
         "reindent": True,
@@ -351,15 +349,15 @@ class RecordEnricher:
         if sql:
             if self.multiline_queries:
                 sql = "\n".join(
-                    l.rstrip()
-                    for l in sqlparse.format(sql, **self._SQL_FORMAT_OPTS).splitlines()
-                    if l.strip()
+                    _.rstrip()
+                    for _ in sqlparse.format(sql, **self._SQL_FORMAT_OPTS).splitlines()
+                    if _.strip()
                 ).strip()
             else:
                 sql = " ".join(
-                    l.strip()
-                    for l in sqlparse.format(sql, **self._SQL_FORMAT_OPTS).splitlines()
-                    if l.strip()
+                    _.strip()
+                    for _ in sqlparse.format(sql, **self._SQL_FORMAT_OPTS).splitlines()
+                    if _.strip()
                 ).strip()
 
             if sql and not sql.endswith(";"):
@@ -414,11 +412,11 @@ class RecordEnricher:
         # be fully logged in all contexts and log sinks
         if params and params_dict:
             if self.shorten_logs:
-                sql = "{} with params {}".format(sql[:1500], params[:500])
+                sql = f"{sql[:1500]} with params {params[:500]}"
             else:
                 # params should always be shortened because they can be huge in when
                 # for exmple we are inserting into PostgreSQL JSONB columns
-                sql = "{} with params {}".format(sql, params[:500])
+                sql = f"{sql} with params {params[:500]}"
         else:
             sql = (sql or " SQL")[:1300]
 
@@ -427,7 +425,7 @@ class RecordEnricher:
     def _format_duration_string(self, recorded_query: SQLRecordedQuery) -> str:
         dur = "_.___ ms"
         if recorded_query.duration_ms:
-            dur = "{:.2f} ms".format(recorded_query.duration_ms)
+            dur = f"{recorded_query.duration_ms:.2f} ms"
         return dur
 
 
@@ -453,7 +451,8 @@ class FlaskSQLStats:
     @classmethod
     def open(cls) -> dict | None:
         if HAS_FLASK:
-            return flask.g.setdefault(cls._KEY_REQUEST_SQL_STATS, dict())
+            return flask.g.setdefault(cls._KEY_REQUEST_SQL_STATS, {})
+        return None
 
     @classmethod
     def close(cls):
@@ -464,6 +463,7 @@ class FlaskSQLStats:
     def get(cls) -> dict | None:
         if HAS_FLASK:
             return flask.g.get(cls._KEY_REQUEST_SQL_STATS)
+        return None
 
     @classmethod
     def incr_stats(cls, lgr: logging.Logger, statement_duration: timedelta):
@@ -485,9 +485,9 @@ class JSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, self._DATES_TIMES):
             return obj.isoformat()
-        elif isinstance(obj, enum.Enum):
+        if isinstance(obj, enum.Enum):
             return obj.name
-        elif isinstance(obj, (UUID, Decimal, Path)):
+        if isinstance(obj, UUID | Decimal | Path):
             return str(obj)
         # return json.JSONEncoder.default(self, obj)
         return str(obj)

@@ -5,7 +5,7 @@ from seveno_pyutil.metaprogramming_helpers import (
 )
 
 
-class Base(object):
+class Base:
     pass
 
 
@@ -22,11 +22,11 @@ class Child(DirectChild1):
 
 
 def test_leaf_subclasses_returns_correct_data():
-    assert set(leaf_subclasses(Base)) == set([DirectChild2, Child])
+    assert set(leaf_subclasses(Base)) == {DirectChild2, Child}
 
 
 def test_all_subclasses_returns_correct_data():
-    assert all_subclasses(Base) == set([DirectChild1, DirectChild2, Child])
+    assert all_subclasses(Base) == {DirectChild1, DirectChild2, Child}
 
 
 def test_import_string_imports_class_from_string():

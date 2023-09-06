@@ -1,7 +1,6 @@
-import sys
 from collections import abc
+from collections.abc import Mapping
 from importlib import import_module
-from typing import Mapping, Union
 
 
 class LeafSubclassRetriever:
@@ -14,7 +13,7 @@ class LeafSubclassRetriever:
 
     def value(self):
         direct_subclasses = self.base_class.__subclasses__()
-        leaf_subclasses = list()
+        leaf_subclasses = []
         for klass in direct_subclasses:
             if len(klass.__subclasses__()) > 0:
                 leaf_subclasses += LeafSubclassRetriever(klass).value()
@@ -56,12 +55,11 @@ def import_string(dotted_path):
         return getattr(module, class_name)
     except AttributeError as e:
         raise ImportError(
-            'Module "%s" does not define a "%s" attribute/class'
-            % (module_path, class_name)
+            f'Module "{module_path}" does not define a "{class_name}" attribute/class'
         ) from e
 
 
-def getval(src: Union[Mapping, object], attr: object, default=None):
+def getval(src: Mapping | object, attr: object, default=None):
     """
     Companion of `dict.get` and `getattr` which ensures default value even when
     original method would had returned `None`
@@ -108,5 +106,4 @@ def getval(src: Union[Mapping, object], attr: object, default=None):
 
     if isinstance(src, abc.Mapping):
         return src.get(attr, None) or default
-    else:
-        return getattr(src, attr, None) or default
+    return getattr(src, attr, None) or default

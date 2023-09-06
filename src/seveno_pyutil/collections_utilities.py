@@ -1,5 +1,6 @@
 import itertools
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 
 def in_batches(iterable: Iterable[Any], of_size: int = 1):

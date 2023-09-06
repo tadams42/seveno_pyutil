@@ -5,9 +5,9 @@ from seveno_pyutil import ensure_tzinfo
 from seveno_pyutil.datetime_utilities import iter_year_month
 
 
-class describe_ensure_tzinfo(object):
+class describe_ensure_tzinfo:
     def it_converts_naive_datetime_to_timezone_aware_datetime(self):
-        dt = datetime.now()
+        dt = datetime.now()  # noqa: DTZ005
         assert ensure_tzinfo(dt, tz_or_offset=None).tzinfo is ZoneInfo("UTC")
         assert ensure_tzinfo(dt, tz_or_offset="").tzinfo == ZoneInfo("UTC")
         assert ensure_tzinfo(dt, tz_or_offset="Z").tzinfo == ZoneInfo("UTC")
@@ -32,7 +32,7 @@ class describe_ensure_tzinfo(object):
         )
 
     def it_converts_timezone_aware_datetime_to_different_timezone(self):
-        dt = datetime.now().replace(tzinfo=ZoneInfo("Europe/Zagreb"))
+        dt = datetime.now().replace(tzinfo=ZoneInfo("Europe/Zagreb"))  # noqa: DTZ005
 
         assert ensure_tzinfo(dt, tz_or_offset=None).tzinfo is ZoneInfo("UTC")
         assert ensure_tzinfo(dt, tz_or_offset="").tzinfo == ZoneInfo("UTC")
