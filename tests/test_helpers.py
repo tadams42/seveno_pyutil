@@ -1,11 +1,10 @@
-import os
 from inspect import getsourcefile
+from pathlib import Path
 
-import pytest
 from faker import Faker
 
-TEST_RESOURCES_ROOT = os.path.abspath(
-    os.path.join(getsourcefile(lambda: 0), "..", "fixtures")
+TEST_RESOURCES_ROOT = (
+    (Path(getsourcefile(lambda: 0)) / ".." / "fixtures").resolve().absolute()
 )
 
 fake = Faker()

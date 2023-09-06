@@ -3,7 +3,7 @@ import time
 from seveno_pyutil import Stopwatch
 
 
-class DescribeStopwatch(object):
+class DescribeStopwatch:
     def it_provides_context_manager_for_duration_measurement(self):
         with Stopwatch() as stopwatch:
             time.sleep(1)

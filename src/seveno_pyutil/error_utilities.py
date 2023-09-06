@@ -1,5 +1,5 @@
 from collections import abc
-from typing import Mapping, Sequence, Union
+from collections.abc import Mapping, Sequence
 
 from .metaprogramming_helpers import getval
 from .string_utilities import is_blank
@@ -25,7 +25,7 @@ class ExceptionsAsErrors:
         errors == {'some_name': ['ZOMG!']}
     """
 
-    def __init__(self, errors_store: Union[Mapping, object], subkey=None):
+    def __init__(self, errors_store: Mapping | object, subkey=None):
         self.subkey = subkey if not is_blank(subkey) else None
         self.errors_store = errors_store
 
@@ -45,7 +45,7 @@ def _normalize_error_data(error):
     if isinstance(error, str):
         return error
 
-    if isinstance(error, (abc.Sequence, abc.Set)):
+    if isinstance(error, abc.Sequence | abc.Set):
         return [_normalize_error_data(obj) for obj in error]
 
     if isinstance(error, abc.Mapping):
@@ -57,9 +57,9 @@ def _normalize_error_data(error):
     return str(error)
 
 
-def add_error_to(
-    errors_store: Union[Mapping, object],
-    error: Union[str, Sequence, object, Mapping, Exception],
+def add_error_to(  # noqa: C901, PLR0912, PLR0915
+    errors_store: Mapping | object,
+    error: str | Sequence | object | Mapping | Exception,
 ):
     """
     Updates error store, merging messages from ``error``
@@ -158,10 +158,10 @@ def add_error_to(
             "errors_store can't be None! errors_store must be a dict or object onto "
             "which dict can be attached!"
         )
-    elif isinstance(errors_store, abc.Mapping):
+    if isinstance(errors_store, abc.Mapping):
         dest = errors_store
     else:
-        errors_store.errors = getval(errors_store, "errors", dict())
+        errors_store.errors = getval(errors_store, "errors", {})
         dest = errors_store.errors
 
     data = _normalize_error_data(error)
@@ -198,7 +198,7 @@ def add_error_to(
                 else:
                     dest[k].append(str(v))
 
-            else:
+            else:  # noqa: PLR5501
                 if isinstance(v, str):
                     dest[k][_SELF_ERRORS_KEY] = getval(dest[k], _SELF_ERRORS_KEY, [])
                     dest[k][_SELF_ERRORS_KEY].append(v)
@@ -214,7 +214,7 @@ def add_error_to(
                     dest[k][_SELF_ERRORS_KEY] = getval(dest[k], _SELF_ERRORS_KEY, [])
                     dest[k][_SELF_ERRORS_KEY].append(str(v))
 
-        else:
+        else:  # noqa: PLR5501
             if isinstance(v, str):
                 dest[k] = [v]
 
@@ -222,7 +222,7 @@ def add_error_to(
                 dest[k] = v
 
             elif isinstance(v, dict):
-                dest[k] = dict()
+                dest[k] = {}
                 add_error_to(dest[k], v)
 
             else:

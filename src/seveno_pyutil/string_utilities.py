@@ -9,7 +9,7 @@ def is_blank(obj: Any) -> bool:
     if not obj:
         return True
 
-    if isinstance(obj, (str, bytes)):
+    if isinstance(obj, str | bytes):
         return not obj.strip()
 
     retv = False

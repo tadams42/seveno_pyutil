@@ -1,3 +1,6 @@
+default_language_version:
+    python: python3.10
+
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.4.0
@@ -16,22 +19,27 @@ repos:
     - id: debug-statements
     - id: mixed-line-ending
 
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.0.287
+  hooks:
+    - id: ruff
+      args: [--fix, --exit-non-zero-on-fix]
+
 - repo: https://github.com/psf/black
   rev: 23.7.0
   hooks:
     - id: black
-      # It is recommended to specify the latest version of Python
-      # supported by your project here, or alternatively use
-      # pre-commit's default_language_version, see
-      # https://pre-commit.com/#top_level-default_language_version
-      language_version: python3
 
-- repo: https://github.com/pycqa/isort
-  rev: 5.12.0
-  hooks:
-    - id: isort
-      language_version: python3
+# Replaced by ruff
+# - repo: https://github.com/pycqa/isort
+#   rev: 5.12.0
+#   hooks:
+#     - id: isort
+#       language_version: python3
 
+# Too much depends on context (ie. unknown but valid code-words added to config)
+# As a consequence, it can produces a lot of false positives since it's added words
+# can.t be git committed
 # - repo: https://github.com/codespell-project/codespell
 #   rev: v2.2.5
 #   hooks:

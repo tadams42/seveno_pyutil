@@ -1,19 +1,17 @@
 from __future__ import annotations
 
-import errno
-import os
 import shutil
 from pathlib import Path
-from typing import Union
 
 from .string_utilities import is_blank
 
 
-def file_checksum(file_path: Union[str, Path], hashlib_callable):
+def file_checksum(file_path: str | Path, hashlib_callable):
     """Given path of the file and hash function, calculates file digest"""
-    if os.path.isfile(file_path) and callable(hashlib_callable):
+
+    if Path(file_path).is_file() and callable(hashlib_callable):
         hash_obj = hashlib_callable()
-        with open(file_path, "rb") as f:
+        with Path(file_path).open("rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_obj.update(chunk)
         return hash_obj.hexdigest()
@@ -21,20 +19,7 @@ def file_checksum(file_path: Union[str, Path], hashlib_callable):
     return None
 
 
-def silent_create_dirs(dir_path: Union[str, Path]):
-    """Tries to create directory and silently skips if it exists."""
-    try:
-        os.makedirs(os.path.abspath(dir_path))
-    except OSError as exception:
-        # We don't care if dir already exists
-        if exception.errno != errno.EEXIST or (
-            exception.errno == errno.EEXIST
-            and not os.path.isdir(os.path.abspath(dir_path))
-        ):
-            raise
-
-
-def abspath_if_relative(relative_path: Union[str, Path], relative_to: Union[str, Path]):
+def abspath_if_relative(relative_path: str | Path, relative_to: str | Path):
     """Creates absolute path from relative, but places it under other path.
 
     Example:
@@ -45,54 +30,21 @@ def abspath_if_relative(relative_path: Union[str, Path], relative_to: Union[str,
 
     if not is_blank(relative_path):
         if not is_blank(relative_to):
-            if not os.path.isabs(relative_path):
-                retv = os.path.abspath(os.path.join(relative_to, relative_path))
+            if not Path(relative_path).is_absolute():
+                retv = (Path(relative_to) / Path(relative_path)).resolve().absolute()
         else:
-            retv = os.path.abspath(relative_path)
+            retv = Path(relative_path).resolve().absolute()
 
     return retv
 
 
-def move_and_create_dest(src_path: Union[str, Path], dst_dir: Union[str, Path]):
+def move_and_create_dest(src_path: str | Path, dst_dir: str | Path):
     """
     Moves ``src_path`` to ``dst_dir`` directory.
 
     Expects ``dst_dir`` to be directory and if it doesn't exits, tries to
     create it.
     """
-    silent_create_dirs(dst_dir)
+    Path(dst_dir).mkdir(parents=True, exist_ok=True)
     shutil.move(src_path, dst_dir)
-    return os.path.join(dst_dir, os.path.basename(src_path))
-
-
-def silent_remove(file_or_dir_path: Union[str, Path]):
-    """
-    Deletes file or directory (even if not empty). Doesn't rise if it doesn't
-    exist.
-    """
-
-    if is_blank(file_or_dir_path):
-        return None
-
-    try:
-        if os.path.isdir(file_or_dir_path):
-            shutil.rmtree(file_or_dir_path)
-        else:
-            os.remove(file_or_dir_path)
-
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
-
-
-def switch_extension(file_path: str, new_extension: str):
-    if is_blank(new_extension):
-        return file_path
-
-    if not new_extension.startswith("."):
-        new_extension = "." + new_extension
-
-    return os.path.join(
-        os.path.dirname(file_path),
-        os.path.splitext(os.path.basename(file_path))[0] + new_extension,
-    )
+    return Path(dst_dir) / Path(dst_dir).name
