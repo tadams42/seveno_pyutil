@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seveno-pyutil"
-version = "0.9.0"
+version = "0.9.1"
 description = "Various unsorted Python utilities"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -17,6 +17,8 @@ classifiers = [
 	"Programming Language :: Python :: 3",
 	"Programming Language :: Python :: 3.10",
 	"Programming Language :: Python :: 3.11",
+	"Programming Language :: Python :: 3.12",
+	"Programming Language :: Python :: 3.13",
 	"Programming Language :: Python :: 3 :: Only",
 	"Operating System :: OS Independent",
 	"Topic :: Software Development :: Libraries :: Python Modules",
@@ -31,7 +33,7 @@ dependencies = [
 	"pretty-traceback",
 	"pygments",
 	"python-dateutil>=2.6.0",
-	"sqlparse",
+	"sqlglot[rs]",
 	"tzlocal",
 ]
 
@@ -42,15 +44,7 @@ Documentation = "https://seveno-pyutil.readthedocs.io/en/latest/"
 
 
 [project.optional-dependencies]
-dev = [
-	"black",
-	"bump2version",
-	"ipython",
-	"isort",
-	"rich",
-	"pre-commit",
-	"ruff",
-]
+dev = ["black", "bump2version", "ipython", "rich", "pre-commit", "ruff"]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
 tests = [
 	"check-manifest",

@@ -14,7 +14,7 @@ copyright = (
     + ", "
     + author
 )
-release = "0.9.0"
+release = "0.9.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -39,13 +39,6 @@ html_theme = "furo"
 html_static_path = ["_static"]
 
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
-
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3.9", None),
-    "marshmallow": ("https://marshmallow.readthedocs.io/en/3.0/", None),
-    "json": ("https://simplejson.readthedocs.io/en/latest/", None),
-    "simplejson": ("https://simplejson.readthedocs.io/en/latest/", None),
-}
 
 add_module_names = False
 

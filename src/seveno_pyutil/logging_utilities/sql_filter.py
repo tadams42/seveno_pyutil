@@ -12,16 +12,18 @@ from pathlib import Path
 from uuid import UUID
 
 import pygments
-import sqlparse
+import sqlglot
 
 # from pygments.formatters import TerminalTrueColorFormatter
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import SqlLexer
 
-HAS_PSYCOPG2 = False
+HAS_PSYCOPG2 = True
+try:
+    import psycopg2
 
-with contextlib.suppress(Exception):
-    HAS_PSYCOPG2 = True
+except Exception:
+    HAS_PSYCOPG2 = False
 
 
 HAS_PSYCOPG3 = True
@@ -337,27 +339,26 @@ class RecordEnricher:
             recorded_query.statement, recorded_query.parameters
         )
 
-    _SQL_FORMAT_OPTS = {
-        "reindent": True,
-        "keyword_case": "upper",
-        "truncate_strings": 25,
-        "reindent_aligned": True,
-        "wrap_after": 88,
-    }
-
     def _maybe_multiline(self, sql: str) -> str:
         if sql:
+            formatted = sqlglot.transpile(
+                sql,
+                read="postgres",
+                write="postgres",
+                pretty=True,
+                normalize_functions="upper",
+                leading_comma=True,
+                max_text_width=240,
+                comments=False,
+            )[0]
+
             if self.multiline_queries:
                 sql = "\n".join(
-                    _.rstrip()
-                    for _ in sqlparse.format(sql, **self._SQL_FORMAT_OPTS).splitlines()
-                    if _.strip()
+                    _.rstrip() for _ in formatted.splitlines() if _.strip()
                 ).strip()
             else:
                 sql = " ".join(
-                    _.strip()
-                    for _ in sqlparse.format(sql, **self._SQL_FORMAT_OPTS).splitlines()
-                    if _.strip()
+                    _.strip() for _ in formatted.splitlines() if _.strip()
                 ).strip()
 
             if sql and not sql.endswith(";"):
