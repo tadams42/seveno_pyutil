@@ -1,9 +1,11 @@
 import itertools
-from collections.abc import Iterable
-from typing import Any
+from collections.abc import Generator, Iterable
+from typing import TypeVar
+
+T = TypeVar("T")  # Declare type variable
 
 
-def in_batches(iterable: Iterable[Any], of_size: int = 1):
+def in_batches(iterable: Iterable[T], of_size: int = 1) -> Generator[Iterable[T]]:
     """
     Generator that yields generator slices of iterable.
 
