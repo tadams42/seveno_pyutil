@@ -129,7 +129,7 @@ norecursedirs = [".git", "tmp*", ".hg", ".venv", ".tox", ".eggs"]
 # on "pip install -e ." repo and in tox
 # Part of the problem is here:
 # https://github.com/pytest-dev/pytest/issues/2042
-# Untill there is a better way to run doctests over installed package code
+# Until there is a better way to run doctests over installed package code
 # we disable them
 addopts = [
 	"-rxEfsw",
