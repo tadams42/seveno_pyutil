@@ -400,16 +400,22 @@ class RecordEnricher:
 
     def _format_compiled(self, compiled: str) -> str:
         if self.multiline_queries:
-            compiled = sqlglot.transpile(
-                compiled,
-                read="postgres",
-                write="postgres",
-                pretty=True,
-                normalize_functions="upper",
-                leading_comma=True,
-                max_text_width=240,
-                comments=False,
-            )[0]
+            formatted = None
+            # Avoid stuff that sqlglot still doesn't support
+            # ie. `RELEASE SAVEPOINT foobar` in PostgreSQL
+            with contextlib.suppress(Exception):
+                formatted = sqlglot.transpile(
+                    compiled,
+                    read="postgres",
+                    write="postgres",
+                    pretty=True,
+                    normalize_functions="upper",
+                    leading_comma=True,
+                    max_text_width=240,
+                    comments=False,
+                )[0]
+            if formatted:
+                compiled = formatted
 
         if self.colorize_queries:
             compiled = pygments.highlight(
