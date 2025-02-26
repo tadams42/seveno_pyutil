@@ -352,9 +352,18 @@ class ConnectionEnricher:
     ) -> str | None:
         compiled = None
 
-        if HAS_PSYCOPG2 and cursor and statement:
+        if HAS_PSYCOPG2 and conn and statement:
             with contextlib.suppress(Exception):
-                compiled = cursor.mogrify(statement, parameters).decode()
+                if not cursor:
+                    # happens when DB driver encounters errors ...
+                    # ... but we'd still like to try to compile statement
+                    new_conn = conn.engine.pool.connect()
+                    compiled = new_conn.cursor().mogrify(statement, parameters).decode()
+                    # returns connection to pool
+                    new_conn.close()
+
+                else:
+                    compiled = cursor.mogrify(statement, parameters).decode()
 
         elif HAS_PSYCOPG3 and conn and statement:
             with contextlib.suppress(Exception):
