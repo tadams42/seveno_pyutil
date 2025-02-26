@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1 (2025-02-26)
+
+- fix: improved `sqlglot` integration
+
 ## 0.9.1 (2025-02-25)
 
 - feat: added support for Python 3.12, 3.13
