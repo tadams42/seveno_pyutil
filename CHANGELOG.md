@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.3 (2026-03-09)
+
+- fix: `sqlglotrs` is deprecated, replaced with `sqlglotc`
+- updated `pyproject.toml` and tooling, replaced `pip` with `uv` in most use cases
+
 ## 0.9.1 (2025-02-26)
 
 - fix: improved `sqlglot` integration
