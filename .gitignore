@@ -80,3 +80,5 @@ docs/_build
 .python-version
 
 .httpyac/
+
+uv.lock
