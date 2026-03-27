@@ -27,13 +27,14 @@ license =  "MIT"
 authors = [{ name = "Tomislav Adamic", email = "tomislav.adamic@gmail.com" }]
 
 dependencies = [
-	"colorlog",
-	"holidays",
-	"pretty-traceback",
-	"pygments",
+	"colorlog >= 6.10.1",
+	"holidays >= 0.93",
+	"pretty-traceback >= 2024.1021",
+	"pygments >= 2.19.2",
 	"python-dateutil >= 2.6.0",
-	"sqlglot[c] >= 29.0.1",
-	"tzlocal",
+	"sqlglot[c] >= 30.1.0",
+	"tzlocal >= 5.3.1",
+	"requests >= 2.33.0"
 ]
 
 [project.urls]
