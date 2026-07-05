@@ -12,7 +12,6 @@ from pathlib import Path
 from uuid import UUID
 
 import pygments
-import sqlglot
 
 # from pygments.formatters import TerminalTrueColorFormatter
 from pygments.formatters import Terminal256Formatter
@@ -409,6 +408,14 @@ class RecordEnricher:
 
     def _format_compiled(self, compiled: str) -> str:
         if self.multiline_queries:
+            # sqlglot adds around 30 MB to each Python process that imports it (think
+            # Gunicorn workers).
+            # Importing it here instead of at the top of the file, avoids that overhead
+            # in production deployments.
+            # Best, it will probably never be imported in that kind of setup because we
+            # usually don't format multiline logs there.
+            import sqlglot  # noqa: PLC0415
+
             formatted = None
             # Avoid stuff that sqlglot still doesn't support
             # ie. `RELEASE SAVEPOINT foobar` in PostgreSQL
