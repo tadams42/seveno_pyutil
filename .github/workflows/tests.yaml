@@ -1,12 +1,7 @@
 name: tests
 
 on:
-  push:
-    branches-ignore:
-      # Once thing had been pushed to master branch, tests have already had to run and
-      # pass so no need to run them again
-      - "master"
-      - "main"
+  - push
 
 
 jobs:
