@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.4 (2026-07-05)
+
+- feat: lazy import `sqlglot` to reduce memory consumption in most cases
+
 ## 0.9.3 (2026-03-09)
 
 - fix: `sqlglotrs` is deprecated, replaced with `sqlglotc`
